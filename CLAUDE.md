@@ -10,6 +10,7 @@ Host Bazzite senza header GTK: build/vet/test Go nel container `evebuild` (`podm
 `toolbox run` non funziona: container troppo vecchio). Linux usa GTK3: sempre `-tags gtk3` (Wails v3 default GTK4).
 ```bash
 cd frontend && npm install && npm run build         # Vue+Vite -> frontend/dist (embedded)
+cd frontend && npm run demo                          # mock con dati finti, solo screenshot README
 wails3 generate bindings -ts -f "-tags gtk3"        # dopo ogni modifica a service.go (nel container)
 go vet -tags gtk3 ./... && go test -tags gtk3 ./... # nel container; sull'host: go test ./internal/...
 go build -buildvcs=false -tags "gtk3 production" -ldflags "-s -w" -o bin/capsuleers.settings .

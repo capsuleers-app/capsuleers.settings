@@ -11,6 +11,18 @@ It belongs to the [**Capsuleers**](https://capsuleers.app) family, next to
 [**Capsuleers.Intel**](https://github.com/WilliamFalci/capsuleers.intel): same look, a small
 single binary, nothing to set up on first launch.
 
+## Screenshots
+
+<p align="center"><img src="docs/screenshots/characters.png" alt="Pick a source character and tick the targets, grouped by account"></p>
+
+All characters and accounts shown are invented demo data.
+
+| | |
+|---|---|
+| <img src="docs/screenshots/profiles.png" alt="Profiles"><br>**Profiles** — installs, servers and settings folders | <img src="docs/screenshots/preview.png" alt="Layout preview"><br>**Layout preview** — a read-only map of the source's windows |
+| <img src="docs/screenshots/review.png" alt="Review"><br>**Review** — every file to overwrite, account files included | <img src="docs/screenshots/backups.png" alt="Backups"><br>**Backups** — restore any of the last 20 |
+| <img src="docs/screenshots/identify.png" alt="Identify"><br>**Identify** — link characters to their account | |
+
 ## Features
 
 - **Finds your settings** — Windows, macOS and Linux (Steam / Proton, Flatpak Steam, extra Steam

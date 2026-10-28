@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "demo": "vite --mode demo --port 5199 --strictPort",
     "build": "vue-tsc --noEmit && vite build",
     "typecheck": "vue-tsc --noEmit"
   },
