@@ -92,3 +92,20 @@ func TestCountProcCmdlines(t *testing.T) {
 		t.Fatalf("skip pid failed: %d", n)
 	}
 }
+
+func TestScanRootTranquilityFirst(t *testing.T) {
+	root := t.TempDir()
+	for _, srv := range []string{"c_ccp_eve_sisi_singularity", "c_ccp_eve_thunderdome_thunderdome", "c_ccp_eve_tq_tranquility"} {
+		write(t, filepath.Join(root, srv, "settings_Default", "core_char_2112017957.dat"), "x")
+	}
+	got := ScanRoot(root)
+	want := []string{"Tranquility", "Singularity", "Thunderdome"}
+	if len(got) != len(want) {
+		t.Fatalf("got %d servers, want %d", len(got), len(want))
+	}
+	for i, w := range want {
+		if got[i].Name != w {
+			t.Fatalf("server %d = %q, want %q", i, got[i].Name, w)
+		}
+	}
+}

@@ -164,9 +164,18 @@ func ScanRoot(root string) []Server {
 			servers = append(servers, Server{Name: serverName(filepath.Base(root)), Dir: root, Profiles: profs})
 		}
 	}
-	sort.Slice(servers, func(i, j int) bool { return servers[i].Name < servers[j].Name })
+	// Tranquility first (the UI preselects servers[0]), then the others by name.
+	sort.Slice(servers, func(i, j int) bool {
+		ti, tj := isTranquility(servers[i].Name), isTranquility(servers[j].Name)
+		if ti != tj {
+			return ti
+		}
+		return servers[i].Name < servers[j].Name
+	})
 	return servers
 }
+
+func isTranquility(name string) bool { return strings.EqualFold(name, "Tranquility") }
 
 func serverName(dir string) string {
 	n := dir
