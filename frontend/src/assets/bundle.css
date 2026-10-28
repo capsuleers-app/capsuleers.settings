@@ -1,0 +1,748 @@
+/* Extracted verbatim from app/assets/css/tailwind.css (EO-Italia/capsuleers.website@310b55f), lines 494-1238: the .cap-* primitives. Colour custom properties come from tokens.css. */
+body { font-family: var(--font-sans); background: var(--cap-hull); color: var(--cap-ink); margin: 0; }
+[data-theme="dark"] { color-scheme: dark; }
+
+/* --- superficie ------------------------------------------------------- */
+.cap-surface { background: var(--cap-hull); color: var(--cap-ink); }
+.cap-hairline { border-color: var(--cap-line); }
+
+/* --- pannelli --------------------------------------------------------- */
+.cap-panel {
+    background: var(--cap-panel);
+    border: 1px solid var(--cap-line);
+    min-width: 0;
+}
+/* Pannello con velatura d'accento. La velatura (`--cap-accent-well`) e' un
+ * arancio al 12%: da sola lasciava il pannello TRASPARENTE, e su una superficie
+ * sospesa — la palette ⌘K, i menu del mobile — sotto si leggeva la pagina.
+ * Qui la velatura viene composta SOPRA il colore di pannello, quindi la resa e'
+ * la stessa ma la superficie e' opaca. */
+.cap-panel--accent {
+    border-color: var(--cap-accent-line);
+    background: linear-gradient(var(--cap-accent-well), var(--cap-accent-well)), var(--cap-panel);
+}
+.cap-panel--crit { border-color: color-mix(in srgb, var(--cap-crit) 45%, transparent); }
+.cap-panel__h {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--cap-line);
+    font-weight: 800;
+    font-size: 11px;
+    line-height: 1.2;
+    letter-spacing: 0.14em;
+    color: var(--cap-ink-3);
+}
+.cap-panel__h > .cap-panel__title { color: var(--cap-accent-txt); text-transform: uppercase; }
+.cap-panel__b { padding: 12px; }
+
+/* --- tipografia strutturale ------------------------------------------- */
+.cap-label {
+    font-weight: 800;
+    font-size: 11px;
+    line-height: 1.3;
+    letter-spacing: 0.13em;
+    color: var(--cap-ink-3);
+}
+.cap-eyebrow {
+    font-weight: 800;
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.2em;
+    color: var(--cap-accent-txt);
+}
+.cap-title {
+    font-family: 'Shentox', 'Rogan', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 1.05;
+    color: var(--cap-ink);
+}
+.cap-muted { color: var(--cap-ink-2); }
+.cap-dim { color: var(--cap-ink-3); }
+
+/* --- chip ------------------------------------------------------------- */
+.cap-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 800;
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.1em;
+    padding: 5px 8px;
+    border: 1px solid var(--cap-line);
+    color: var(--cap-ink-3);
+    background: var(--cap-panel);
+    white-space: nowrap;
+}
+/* Un chip-filtro disabilitato esiste perche' il suo conteggio e' zero: resta
+   leggibile — dice comunque com'e' composto il risultato — ma non deve sembrare
+   cliccabile, altrimenti e' un vicolo cieco verso una lista vuota. I controlli
+   disabilitati sono l'unica classe esente dal pavimento di contrasto. */
+.cap-chip:disabled { opacity: 0.45; cursor: not-allowed; }
+/* Un chip che porta una FRASE, non un'etichetta. `.cap-chip` dichiara
+   `white-space: nowrap` e vive FUORI da `@layer`, quindi nessuna utility lo
+   batte: per farlo andare a capo serve un modificatore, come per --on/--ok.
+   Misurato durante l'audit SEO del 2026-09-08: senza, il chip di copertura
+   del killboard («138.971 killmail archiviate…») misura 341px su un viewport
+   da 320 e fa scorrere di lato TUTTA la pagina — un chip non puo' sfondare
+   il proprio contenitore, e `max-width: 100%` e' il pavimento che glielo
+   impedisce anche quando la frase cresce. */
+.cap-chip--wrap { white-space: normal; max-width: 100%; }
+.cap-chip--on { color: var(--cap-on-accent); background: var(--cap-accent); border-color: var(--cap-accent); }
+.cap-chip--ok { color: var(--cap-ok); border-color: color-mix(in srgb, var(--cap-ok) 42%, transparent); }
+.cap-chip--warn { color: var(--cap-warn); border-color: color-mix(in srgb, var(--cap-warn) 46%, transparent); }
+.cap-chip--crit { color: var(--cap-crit); border-color: color-mix(in srgb, var(--cap-crit) 46%, transparent); }
+.cap-chip--fleet { color: var(--cap-fleet); border-color: color-mix(in srgb, var(--cap-fleet) 46%, transparent); }
+.cap-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; display: block; }
+
+/* Striscia che scorre in orizzontale senza barra: serve dove la barra ruberebbe
+   piu' altezza del contenuto (una fila di ritratti da 32 px in una testata).
+   Il taglio del contenuto resta l'indizio che c'e' altro. */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+/* --- bottoni ---------------------------------------------------------- */
+.cap-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 800;
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 9px 13px;
+    border: 1px solid var(--cap-line);
+    background: var(--cap-panel);
+    color: var(--cap-ink-2);
+    transition: border-color .15s, color .15s, background .15s;
+}
+.cap-btn:hover:not(:disabled) { border-color: var(--cap-accent-line); color: var(--cap-ink); }
+.cap-btn--pri {
+    background: var(--cap-accent);
+    color: var(--cap-on-accent);
+    border-color: var(--cap-accent);
+}
+.cap-btn--pri:hover:not(:disabled) { background: #f97316; border-color: #f97316; color: var(--cap-on-accent); }
+.cap-btn--pri:hover:not(:disabled) * { color: inherit; }
+
+/* Azione distruttiva (ferma il tracker, elimina il fit, rifiuta la richiesta).
+ * Nel linguaggio vecchio era un bottone rosso pieno o con fondo rosso al 15%:
+ * il segnale resta, ma sul filo e sul testo, come ogni altro stato dei token. */
+/* Bottone di sola icona, quadrato. Un `.cap-btn` con dentro una sola icona
+ * resta largo quanto il suo padding orizzontale (12px per lato) e in una
+ * colonna stretta ruba spazio al contenuto. */
+.cap-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    flex: none;
+    background: var(--cap-panel);
+    border: 1px solid var(--cap-line);
+    color: var(--cap-ink-2);
+    transition: border-color .15s, color .15s, background .15s;
+}
+.cap-icon-btn:hover:not(:disabled) { border-color: var(--cap-accent-line); color: var(--cap-accent-txt); }
+.cap-icon-btn:disabled { opacity: .4; cursor: not-allowed; }
+.cap-icon-btn:focus-visible { outline: 2px solid var(--cap-accent); outline-offset: 1px; }
+
+.cap-btn--crit {
+    color: var(--cap-crit);
+    border-color: color-mix(in srgb, var(--cap-crit) 50%, transparent);
+}
+.cap-btn--crit:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--cap-crit) 12%, transparent);
+    border-color: var(--cap-crit);
+}
+/*
+ * **Un `.cap-btn` spento deve SEMBRARE spento**, e non lo sembrava.
+ *
+ * Tutti i vicini di questo layer avevano gia' la loro regola — `.cap-chip`,
+ * `.cap-icon-btn`, `.cap-input`, `.cap-select`, `.cap-textarea`, `.cap-picker` —
+ * e proprio il bottone no: un `<button class="cap-btn" disabled>` rendeva con lo
+ * stesso bordo, lo stesso colore e lo stesso fondo di uno attivo. Il difetto e'
+ * particolarmente insidioso perche' il browser fa gia' la sua parte (un bottone
+ * disabilitato non emette `click`), quindi non succede NIENTE: nessun errore,
+ * nessun movimento, nessuna spiegazione. Segnalato come «cliccando su Preview
+ * non succede nulla» sul Battle Report, dove il bottone e' spento finche' non
+ * c'e' almeno una squadra.
+ *
+ * Non e' un caso isolato: **153 bottoni in 68 file** portano un binding
+ * `disabled` su `.cap-btn`, e nessuno di loro lo mostrava.
+ *
+ * Gli hover sopra sono guardati con `:not(:disabled)` per la stessa ragione per
+ * cui lo e' `.cap-icon-btn:hover`: un bottone spento che si illumina al
+ * passaggio del mouse promette un clic che non arrivera' mai — peggio di
+ * nessuno stato affatto.
+ *
+ * L'opacita' e' 0.45 come su `.cap-chip`, non 0.4 come sull'icona: qui c'e'
+ * un'etichetta da leggere, ed e' proprio leggendola che si capisce cosa manca.
+ * La regola sta DOPO le varianti (`--pri`, `--crit`) perche' deve valere anche
+ * per loro: il fondo arancione pieno di `--pri` era il caso piu' ingannevole,
+ * si legge come l'azione principale della pagina.
+ */
+.cap-btn:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+/* --- tile numerica ---------------------------------------------------- */
+.cap-tile {
+    display: flex;
+    flex-direction: column;
+    background: var(--cap-panel);
+    border: 1px solid var(--cap-line);
+    padding: 12px 13px;
+}
+.cap-tile__lab {
+    display: block;
+    font-weight: 800;
+    font-size: 11px;
+    line-height: 1.3;
+    letter-spacing: 0.14em;
+    color: var(--cap-ink-3);
+}
+.cap-tile__val {
+    display: block;
+    font-family: 'Shentox', 'Rogan', sans-serif;
+    font-size: 24px;
+    line-height: 1.1;
+    margin-top: 8px;
+    color: var(--cap-ink);
+    font-variant-numeric: tabular-nums;
+}
+.cap-tile__delta { display: block; font-size: 12px; font-weight: 700; margin-top: 4px; color: var(--cap-ink-3); }
+/* La barra chiude la tile ed e' agganciata in fondo: in una fila di tile basta
+   che una cifra vada a capo (un valore in ISK piu' lungo degli altri) perche'
+   le barre si sfalsino. Lo stacco lo mette la riga sopra. */
+.cap-tile > .cap-bar { margin-top: auto; }
+.cap-tile__delta:has(+ .cap-bar), .cap-tile__val:has(+ .cap-bar) { margin-bottom: 8px; }
+.cap-up { color: var(--cap-ok); }
+.cap-down { color: var(--cap-crit); }
+
+/* --- rail (Strumenti / Account) --------------------------------------- */
+.cap-rail { background: var(--cap-panel); border: 1px solid var(--cap-line); padding: 10px; }
+.cap-rail__grp {
+    display: block;
+    font-weight: 800;
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: 0.16em;
+    color: var(--cap-ink-3);
+    padding: 14px 8px 8px;
+}
+.cap-rail__grp:first-child { padding-top: 4px; }
+.cap-rail__link {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cap-ink-2);
+    border-left: 2px solid transparent;
+    transition: background .15s, color .15s, border-color .15s;
+}
+.cap-rail__link:hover { color: var(--cap-ink); background: var(--cap-panel-2); }
+.cap-rail__link.is-active { color: var(--cap-ink); background: var(--cap-accent-well); border-left-color: var(--cap-accent); }
+
+/* --- card strumento --------------------------------------------------- */
+.cap-tool {
+    display: flex;
+    flex-direction: column;
+    /* Grid/flex children default to `min-width: auto`, so a `truncate`d label
+       (white-space: nowrap) blows the track out to the text's full width and
+       the panel overflows its column. */
+    min-width: 0;
+    gap: 6px;
+    background: var(--cap-panel);
+    border: 1px solid var(--cap-line);
+    padding: 13px;
+    transition: border-color .15s, background .15s;
+}
+.cap-tool:hover { border-color: var(--cap-accent-line); background: var(--cap-accent-well); }
+.cap-tool--row { flex-direction: row; align-items: center; }
+/* Scheda scelta in una griglia selezionabile (indice nodi del jump range). */
+.cap-tool.is-sel { border-color: var(--cap-accent-line); background: var(--cap-accent-well); }
+.cap-tool--row > * { min-width: 0; }
+.cap-tool__name {
+    font-family: 'Shentox', 'Rogan', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--cap-ink);
+}
+/* Stessa riga di `.cap-tool__name`, ma senza il maiuscolo: per il testo che
+   scrivono gli utenti o che arriva da SDE/ESI (nomi di fit, di navi, di
+   personaggi), che va reso nel suo caso originale. Il maiuscolo resta a
+   `.cap-tool__name`, che etichetta gli strumenti nostri. */
+.cap-tool__name--raw {
+    font-family: 'Shentox', 'Rogan', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+    text-transform: none;
+    color: var(--cap-ink);
+}
+.cap-tool__desc { font-size: 12.5px; line-height: 1.45; color: var(--cap-ink-3); }
+
+/* --- scheda con media -------------------------------------------------
+ * Come `.cap-tool`, ma per i blocchi che hanno un'immagine sopra il testo
+ * (articoli, notizie): il padding sta sul corpo, non sulla scheda, cosi'
+ * l'immagine arriva a filo del bordo. Il fondo NON cambia in hover — su una
+ * scheda con foto la velatura arancione sporcava l'immagine.
+ */
+.cap-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--cap-panel);
+    border: 1px solid var(--cap-line);
+    transition: border-color .15s;
+}
+.cap-card:hover { border-color: var(--cap-accent-line); }
+.cap-card__b {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 14px;
+}
+/* Riquadro dell'immagine: rapporto fisso + il filo che la stacca dal corpo. */
+.cap-card__media {
+    position: relative;
+    overflow: hidden;
+    flex: none;
+    aspect-ratio: 16 / 9;
+    background: var(--cap-panel-2);
+    border-bottom: 1px solid var(--cap-line);
+}
+.cap-card__media > img { width: 100%; height: 100%; object-fit: cover; }
+
+/* --- barra superfici (header) ----------------------------------------- */
+.cap-surface-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 12px;
+    font-weight: 800;
+    font-size: 12px;
+    line-height: 1;
+    letter-spacing: 0.14em;
+    color: var(--cap-ink-3);
+    border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+}
+.cap-surface-tab:hover { color: var(--cap-ink); }
+.cap-surface-tab.is-active { color: var(--cap-ink); border-bottom-color: var(--cap-accent); }
+
+/* --- trigger della barra di comando ----------------------------------- */
+.cap-cmd {
+    /* No `display` here on purpose: these rules sit outside @layer, so a
+       `display` declaration would beat Tailwind's `hidden` utility and the
+       trigger would stay visible on mobile. The caller supplies the display
+       (`hidden md:flex`). */
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    height: 32px;
+    padding: 0 10px;
+    background: var(--cap-hull);
+    border: 1px solid var(--cap-line);
+    color: var(--cap-ink-3);
+    font-size: 12.5px;
+    transition: border-color .15s, color .15s;
+}
+.cap-cmd:hover { border-color: var(--cap-accent-line); color: var(--cap-ink-2); }
+.cap-kbd {
+    font-weight: 700;
+    font-size: 11px;
+    line-height: 1;
+    border: 1px solid var(--cap-line);
+    padding: 4px 6px;
+    color: var(--cap-ink-3);
+    background: var(--cap-panel);
+    white-space: nowrap;
+}
+
+/* --- riga risultato (palette) ----------------------------------------- */
+.cap-res {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 14px;
+    font-size: 13px;
+    text-align: left;
+    color: var(--cap-ink-2);
+    background: transparent;
+    transition: background .1s;
+}
+.cap-res.is-active { background: var(--cap-accent-well); box-shadow: inset 2px 0 0 var(--cap-accent); color: var(--cap-ink); }
+.cap-res__t { font-weight: 700; color: var(--cap-ink); }
+.cap-res__s { color: var(--cap-ink-3); font-size: 12px; }
+
+/* --- barra di avanzamento -------------------------------------------- */
+.cap-bar { height: 7px; background: var(--cap-panel-2); border: 1px solid var(--cap-line); position: relative; overflow: hidden; }
+.cap-bar > span { position: absolute; inset: 0 auto 0 0; background: var(--cap-accent); display: block; }
+
+/* --- controlli di modulo ----------------------------------------------
+ * Ogni pagina strumento si disegnava i propri campi: fondo nero, bordo
+ * arancione al 30%, testo a 9px maiuscolo con 0,2em di spaziatura. Trenta
+ * varianti dello stesso controllo, nessuna con uno stato di fuoco visibile.
+ * Qui c'e' UN campo: gli strumenti dichiarano `.cap-input` / `.cap-select` /
+ * `.cap-textarea` e basta.
+ */
+/* Il campo di TESTO: blocco a larghezza piena.
+ *
+ * `:not([type=checkbox]):not([type=radio])` non e' un vezzo. Nella passata
+ * meccanica del restyle `.cap-input` e' finita anche su tredici caselle e
+ * radio, e questo blocco le stirava a larghezza piena con 9 px di padding:
+ * in una riga "etichetta + casella" la casella si prendeva mezza riga e il
+ * testo andava a capo UNA PAROLA PER RIGA (il pannello dei cookie era
+ * illeggibile). Ed essendo queste regole fuori da @layer, nemmeno un `w-4`
+ * nel template riusciva a scavalcarle.
+ * Escluse qui, caselle e radio tornano alle dimensioni native e obbediscono
+ * alle utility che il template gia' porta — comprese quelle che le stendono
+ * apposta sopra un interruttore disegnato (`absolute inset-0 w-full h-full`). */
+.cap-input:not([type="checkbox"]):not([type="radio"]),
+.cap-select,
+.cap-textarea {
+    display: block;
+    width: 100%;
+    background: var(--cap-panel-2);
+    border: 1px solid var(--cap-line);
+    color: var(--cap-ink);
+    font-size: 14px;
+    line-height: 1.4;
+    padding: 9px 11px;
+    transition: border-color .15s;
+}
+/* Caselle e radio: solo il colore del segno di spunta e il cursore. */
+.cap-input[type="checkbox"],
+.cap-input[type="radio"] {
+    accent-color: var(--cap-accent);
+    cursor: pointer;
+}
+/* Selettore di colore: e' un CAMPIONE, non un campo di testo.
+ *
+ * Il layer dei token sta fuori da `@layer` e batte le utility, quindi
+ * `class="cap-input h-9 w-12"` su un `<input type=color>` finiva a
+ * `width: 100%`: nei pannelli dei widget il campione diventava una barra
+ * arancione a tutta riga e il campo esadecimale accanto (flex-1) si
+ * schiacciava a zero. Le utility non possono vincere — l'eccezione va messa
+ * qui, come per caselle e radio. Vedi CLAUDE.md, "Token layer & legacy bridge".
+ *
+ * `width`/`height` restano sovrascrivibili da uno `style` inline, non da una
+ * classe: la misura sotto e' quella che i chiamanti chiedevano con `h-9 w-12`. */
+.cap-input[type="color"] {
+    display: inline-block;
+    width: 48px;
+    height: 36px;
+    flex: none;
+    padding: 3px;
+    cursor: pointer;
+}
+/* Il campione interno riempie il riquadro: senza, Chrome lascia un margine
+ * bianco intorno alla tinta e in tema scuro sembra un campo vuoto. */
+.cap-input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+.cap-input[type="color"]::-webkit-color-swatch { border: 0; }
+.cap-input[type="color"]::-moz-color-swatch { border: 0; }
+.cap-textarea { min-height: 120px; resize: vertical; }
+.cap-select { padding-right: 30px; }
+.cap-input::placeholder,
+.cap-textarea::placeholder { color: var(--cap-ink-3); }
+.cap-input:not([type="checkbox"]):not([type="radio"]):hover,
+.cap-select:hover,
+.cap-textarea:hover { border-color: var(--cap-line-soft); }
+.cap-input:not([type="checkbox"]):not([type="radio"]):focus,
+.cap-select:focus,
+.cap-textarea:focus {
+    outline: none;
+    border-color: var(--cap-accent);
+    box-shadow: inset 0 0 0 1px var(--cap-accent);
+}
+/* Campo "nudo": sta DENTRO un contenitore gia' disegnato (la palette ⌘K, la
+ * barra di ricerca dell'hub, una cella di tabella). Un secondo riquadro dentro
+ * il primo si legge come un errore di allineamento. */
+.cap-input--bare {
+    background: transparent;
+    border: 0;
+    padding: 0;
+}
+.cap-input--bare:focus { box-shadow: none; }
+.cap-input--bare:hover { border-color: transparent; }
+
+.cap-input:disabled,
+.cap-select:disabled,
+.cap-textarea:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Il SELETTORE: ha l'aspetto di un campo, ma e' un comando e dispone i propri
+ * figli IN RIGA (ritratto + nome + freccia, icona + valore, ...).
+ *
+ * Serve un primitivo a parte perche' `.cap-input` dichiara `display: block` e,
+ * stando fuori da @layer, batte qualunque utility di disposizione: un
+ * `class="cap-input flex items-center"` su un <button> resta block, e i figli
+ * si impilano invece di affiancarsi — e' cosi' che nel selettore pilota dello
+ * strumento flotta il ritratto e' finito SOPRA il nome. La stessa trappola
+ * delle caselle di spunta, in un'altra veste: il token non si scavalca con una
+ * utility, gli si affianca il primitivo giusto. */
+.cap-picker {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    text-align: left;
+    background: var(--cap-panel-2);
+    border: 1px solid var(--cap-line);
+    color: var(--cap-ink);
+    font-size: 14px;
+    line-height: 1.4;
+    padding: 9px 11px;
+    transition: border-color .15s;
+}
+.cap-picker:hover { border-color: var(--cap-line-soft); }
+.cap-picker:focus-visible {
+    outline: none;
+    border-color: var(--cap-accent);
+    box-shadow: inset 0 0 0 1px var(--cap-accent);
+}
+.cap-picker[aria-expanded="true"] { border-color: var(--cap-accent); }
+.cap-picker:disabled { opacity: .5; cursor: not-allowed; }
+/* Etichetta sopra il campo. `display: block` perche' quasi sempre e' un
+   <label> che deve stare sulla sua riga. */
+.cap-field { display: block; }
+.cap-field > .cap-label { display: block; margin-bottom: 6px; }
+
+/* --- tabella dati -----------------------------------------------------
+ * Le tabelle degli strumenti (asset, portafoglio, partecipazione, mercato)
+ * ripetevano intestazione, righe zebrate e allineamento numerico a mano.
+ */
+.cap-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.cap-table th {
+    text-align: left;
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 0.13em;
+    color: var(--cap-ink-3);
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--cap-line);
+    white-space: nowrap;
+}
+/* **Le utility di allineamento devono poter vincere su `th`.**
+ *
+ * `.cap-table th` e' un selettore classe+elemento (specificita' 0,1,1) e batte
+ * `.text-right` di Tailwind (0,1,0): un `class="text-right"` su
+ * un'intestazione numerica non aveva alcun effetto, e la colonna usciva con
+ * l'intestazione a sinistra e i numeri a destra. Sui `td` il difetto non
+ * c'era, perche' `.cap-table td` non dichiara `text-align` affatto — e' per
+ * questo che lo sfasamento si vede solo sulla riga delle intestazioni.
+ *
+ * Misurato il 2026-09-12: **34 intestazioni in nove superfici** lo usavano gia'
+ * credendo che funzionasse (industria, wallet, incursioni, composizione di
+ * flotta, killboard, due console admin). Questa regola le allinea tutte, e non
+ * cambia nessuna tabella che non avesse gia' chiesto l'allineamento. */
+.cap-table th.text-right { text-align: right; }
+.cap-table th.text-center { text-align: center; }
+.cap-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--cap-line-soft);
+    color: var(--cap-ink-2);
+    vertical-align: middle;
+}
+/* Righe alternate. E' un MODIFICATORE e non una modifica a `.cap-table`:
+ * la classe base la usano una quindicina di strumenti, e ridipingerle tutte
+ * non e' stato chiesto. Su una tabella fitta — cinque colonne, due righe di
+ * testo per cella — la tonalita' alternata e' cio' che tiene l'occhio sulla
+ * riga giusta mentre si scorre verso destra.
+ * La velatura sta SOTTO quella del passaggio del mouse (`:hover` viene dopo),
+ * o la riga sotto il puntatore smetterebbe di distinguersi. */
+.cap-table--zebra tbody tr:nth-child(even) > td { background: var(--cap-panel-2); }
+.cap-table tbody tr:hover > td { background: var(--cap-panel-2); }
+.cap-table--zebra tbody tr:hover > td { background: var(--cap-accent-well); }
+
+/* --- la riga che e' una PERDITA -------------------------------------------
+   Sul killboard filtrato su un personaggio, una corporazione o un'alleanza,
+   ogni riga e' una vittoria o una sconfitta di quella entita' — e senza un
+   segno le due si leggono uguali, cioe' l'elenco non risponde alla prima
+   domanda che gli si fa.
+   Va DOPO le regole della zebratura e con la stessa specificita', cosi' vince
+   per ordine su entrambe le tinte alternate; l'evidenziazione al passaggio del
+   mouse resta piu' avanti e continua a vincere su questa, che e' giusto —
+   quella dice «sto puntando qui», questa «questa e' andata male». */
+.cap-table--zebra tbody tr.is-loss > td { background: var(--cap-crit-well); }
+.cap-table--zebra tbody tr.is-loss > td:first-child { box-shadow: inset 2px 0 0 var(--cap-crit); }
+.cap-table tbody tr:last-child > td { border-bottom: 0; }
+.cap-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* --- l'intestazione che RESTA ---------------------------------------------
+ * Modificatore, non una modifica a `.cap-table`: le tabelle corte non hanno
+ * nulla da guadagnarci e un ancoraggio costa un contesto di impilamento.
+ * Serve dove l'elenco e' lungo quanto il feed del killboard — migliaia di
+ * pixel, dopo i quali cinque colonne sono cinque colonne senza nome e
+ * «10:23 · -1.0 J115727» non si interpreta da solo.
+ *
+ * **Il fondo e' obbligatorio.** `.cap-table th` non ne dichiara uno, e una
+ * testata trasparente che si ancora lascia scorrere le righe SOTTO il proprio
+ * testo: due righe di parole sovrapposte, che si legge come un difetto di
+ * resa. Il filo sotto arriva da `.cap-table th`, ma con `border-collapse`
+ * i bordi appartengono alla tabella e non scorrono insieme alla cella —
+ * l'ombra interna lo ridisegna attaccato alla testata ancorata.
+ *
+ * **Chi lo monta non puo' avere `overflow` sugli antenati.** `sticky` si
+ * ancora al piu' vicino contenitore di scorrimento: dentro un pannello con
+ * `overflow-x: auto` — che per la specifica rende `overflow-y` a sua volta
+ * `auto` — quello e' il pannello, che in verticale non scorre mai, quindi
+ * l'ancoraggio non ha alcun effetto visibile. Il feed toglie percio'
+ * l'overflow da `lg` in su, dove le cinque colonne ci stanno comunque.
+ *
+ * `z-index: 2` e non di piu': la barra globale sta a 1000 e deve continuare a
+ * passarci sopra. */
+/* **Dentro una media query, e non e' prudenza: senza, la testata SCENDE.**
+ * Sotto `lg` il pannello del feed tiene il proprio `overflow-x: auto` — le
+ * cinque colonne non ci stanno — quindi il contenitore di scorrimento e' il
+ * pannello. Li' `top: 61px` significa «stai almeno 61px sotto il bordo alto del
+ * pannello», e siccome quel pannello in verticale non scorre mai la testata
+ * viene spinta giu' di 61px E BASTA: si sovrappone alle prime due killmail,
+ * ferma. Misurato a 390px — testata a +62px dal bordo del pannello, prima riga
+ * a +65. La soglia e' la stessa di `lg` di Tailwind, cioe' la stessa a cui il
+ * pannello rinuncia all'overflow: le due cose devono accendersi insieme. */
+@media (min-width: 1024px) {
+    .cap-table--sticky thead th {
+        position: sticky;
+        top: calc(var(--cap-header-h) + var(--cap-header-line));
+        z-index: 2;
+        background: var(--cap-panel);
+        box-shadow: inset 0 -1px 0 var(--cap-line);
+    }
+}
+
+/* --- stato vuoto ------------------------------------------------------
+ * "[ NESSUN RISULTATO ]" fra parentesi quadre, in corsivo, rosso, alto 200px:
+ * un vuoto atteso non e' un errore e non deve urlare.
+ */
+.cap-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--cap-panel);
+    border: 1px solid var(--cap-line);
+    color: var(--cap-ink-2);
+    font-size: 14px;
+}
+
+/* --- banda del Ponte --------------------------------------------------
+ * Raggruppa piu' componenti a tutta larghezza sotto un unico titolo. I
+ * componenti portano ancora il loro markup, ma la banda impone la superficie
+ * comune e separa un blocco dall'altro con un filo, invece di lasciare che
+ * ognuno stacchi con il proprio fondo.
+ */
+/* Il filo chiude anche la banda: senza, l'ultimo blocco (Reddit nel Feed,
+ * Prossime flotte nella Warzone) sfumava nel primo blocco della banda dopo
+ * senza stacco, ed era l'unico attacco fra due blocchi senza linea. */
+.cap-band { background: var(--cap-hull); position: relative; border-bottom: 1px solid var(--cap-line-soft); }
+/* ...ma NON l'ultima banda della pagina: sotto non c'e' un'altra banda da cui
+ * staccarsi, c'e' `<SharedSeoFooterCopy>`, che si annuncia gia' da solo con un
+ * `border-t` e un fondo diverso. Le due righe finivano una sopra l'altra,
+ * separate dal suo `mt-12`: un filo a tutta larghezza sospeso nel vuoto.
+ * Classe esplicita e non `:last-of-type`: il blocco SEO e' anch'esso una
+ * `<section>`, quindi e' lui l'ultimo del suo tipo, e il selettore non
+ * raggiungerebbe mai la banda. */
+.cap-band--end { border-bottom: none; }
+/* Il filo fra un blocco e l'altro corre da bordo a bordo: il CONTENUTO resta
+ * sulla griglia da 1280 px, il filo no — un separatore che si ferma prima del
+ * bordo fa sembrare la banda una scheda, che e' l'opposto di "una superficie".
+ * Il pseudo-elemento e' assoluto e si ancora orizzontalmente alla BANDA
+ * (`left/right: 0`, il primo antenato posizionato), mentre in verticale, con
+ * `top: auto`, resta alla sua posizione statica: il bordo superiore del
+ * contenuto del blocco. `margin-top` annulla il padding verticale del blocco
+ * (`py-8` su tutti) e riporta il filo esattamente dov'era il `border-top`. */
+.cap-band > * + *::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin-top: -2rem;
+    height: 1px;
+    background: var(--cap-line-soft);
+}
+
+/* --- suggerimento al passaggio del cursore -----------------------------
+ * Etichetta che compare sopra un elemento troppo piccolo per portare il
+ * proprio testo (i pallini delle capability sul Ponte). Solo CSS: niente
+ * stato, niente listener, funziona anche dentro un <a>. Il contenuto e'
+ * `pointer-events: none` cosi' non ruba il clic al link che lo contiene.
+ */
+/* **`.cap-hint` e' usata come TESTO in 29 punti e come tooltip in UNO.**
+   Definiva solo l'ancoraggio (`position` + `display`), quindi in quei 29 il
+   testo usciva alla dimensione e al colore del corpo — bianco e grosso, dove
+   doveva essere una nota di servizio. Segnalato sul pannello filtri del
+   killboard, ma il difetto era in industry, fit/public e ovunque altro.
+   Aggiungere qui dimensione e colore li sistema tutti insieme e non disturba
+   l'unico uso a tooltip, il cui corpo ha stile proprio (`.cap-hint__b`). */
+.cap-hint {
+    position: relative;
+    display: inline-flex;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--cap-ink-3);
+}
+.cap-hint__b {
+    position: absolute;
+    bottom: calc(100% + 7px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 40;
+    white-space: nowrap;
+    padding: 5px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--cap-ink);
+    background: var(--cap-panel-2);
+    border: 1px solid var(--cap-line);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .12s ease;
+    pointer-events: none;
+}
+/* Gli ultimi pallini di una fila stanno sul bordo destro della scheda: da
+   centrati uscirebbero dallo schermo, quindi si ancorano a destra. */
+.cap-hint__b--end { left: auto; right: 0; transform: none; }
+.cap-hint:hover > .cap-hint__b,
+.cap-hint:focus-visible > .cap-hint__b { opacity: 1; visibility: visible; }
+
+/* --- scheletro di caricamento ----------------------------------------
+   Un blocco che tiene il POSTO del dato mentre arriva, con la forma di cio'
+   che sostituira'. Vive nel token layer come le altre primitive perche' il
+   colore deve venire dai token: un grigio scelto a mano sarebbe una macchia
+   sul tema chiaro. Il luccichio rispetta chi ha chiesto meno movimento —
+   un'animazione che non si puo' fermare, ripetuta su venti blocchi, e' esatta-
+   mente il caso per cui quella preferenza esiste. */
+.cap-skel { position: relative; overflow: hidden; border-radius: 2px; background: var(--cap-panel-2); }
+.cap-skel::after {
+    content: ''; position: absolute; inset: 0; transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, var(--cap-line), transparent);
+    animation: cap-skel-sweep 1.4s ease-in-out infinite;
+}
+@keyframes cap-skel-sweep { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) {
+    .cap-skel::after { animation: none; transform: none; opacity: .45; }
+}
+
+/* --- lista chiave/valore --------------------------------------------- */
+.cap-kv { display: flex; align-items: center; gap: 9px; font-size: 13px; padding: 9px 0; border-bottom: 1px solid var(--cap-line-soft); }
+.cap-kv:last-child { border-bottom: 0; }
+.cap-kv__k { color: var(--cap-ink-3); font-weight: 700; }
+.cap-kv__v { margin-left: auto; font-weight: 800; color: var(--cap-ink); font-variant-numeric: tabular-nums; }
