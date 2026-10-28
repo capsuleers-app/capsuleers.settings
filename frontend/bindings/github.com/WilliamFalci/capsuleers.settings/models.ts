@@ -5,6 +5,10 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as charsettings$0 from "./internal/charsettings/models.js";
+
 /**
  * Meta is static app info for the footer.
  */
@@ -30,6 +34,307 @@ export class Meta {
     static createFrom($$source: any = {}): Meta {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new Meta($$parsedSource as Partial<Meta>);
+    }
+}
+
+/**
+ * PreviewChannel is a chat channel; Status is same, add, remove, or empty without a target.
+ */
+export class PreviewChannel {
+    "id": string;
+    "kind": string;
+    "label": string;
+    "status": string;
+
+    /** Creates a new PreviewChannel instance. */
+    constructor($$source: Partial<PreviewChannel> = {}) {
+        if (!("id" in $$source)) {
+            this["id"] = "";
+        }
+        if (!("kind" in $$source)) {
+            this["kind"] = "";
+        }
+        if (!("label" in $$source)) {
+            this["label"] = "";
+        }
+        if (!("status" in $$source)) {
+            this["status"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PreviewChannel instance from a string or object.
+     */
+    static createFrom($$source: any = {}): PreviewChannel {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new PreviewChannel($$parsedSource as Partial<PreviewChannel>);
+    }
+}
+
+/**
+ * PreviewItem pairs a window in the source with the same id in the target. Status is
+ * same, move, add (only in source) or remove (only in target); empty without a target.
+ */
+export class PreviewItem {
+    "id": string;
+    "label": string;
+    "status": string;
+    "source": PreviewWindow | null;
+    "target": PreviewWindow | null;
+
+    /** Creates a new PreviewItem instance. */
+    constructor($$source: Partial<PreviewItem> = {}) {
+        if (!("id" in $$source)) {
+            this["id"] = "";
+        }
+        if (!("label" in $$source)) {
+            this["label"] = "";
+        }
+        if (!("status" in $$source)) {
+            this["status"] = "";
+        }
+        if (!("source" in $$source)) {
+            this["source"] = null;
+        }
+        if (!("target" in $$source)) {
+            this["target"] = null;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PreviewItem instance from a string or object.
+     */
+    static createFrom($$source: any = {}): PreviewItem {
+        const $$createField3_0 = $$createType1;
+        const $$createField4_0 = $$createType1;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("source" in $$parsedSource) {
+            $$parsedSource["source"] = $$createField3_0($$parsedSource["source"]);
+        }
+        if ("target" in $$parsedSource) {
+            $$parsedSource["target"] = $$createField4_0($$parsedSource["target"]);
+        }
+        return new PreviewItem($$parsedSource as Partial<PreviewItem>);
+    }
+}
+
+/**
+ * PreviewResult is what the Preview view shows. Code is "bad_request" when the ids or folder are not valid.
+ */
+export class PreviewResult {
+    "ok": boolean;
+    "code": string;
+    "source": PreviewSide;
+    "target": PreviewSide | null;
+    "display": charsettings$0.Display;
+    "items": PreviewItem[];
+    "channels": PreviewChannel[];
+
+    /** Creates a new PreviewResult instance. */
+    constructor($$source: Partial<PreviewResult> = {}) {
+        if (!("ok" in $$source)) {
+            this["ok"] = false;
+        }
+        if (!("code" in $$source)) {
+            this["code"] = "";
+        }
+        if (!("source" in $$source)) {
+            this["source"] = (new PreviewSide());
+        }
+        if (!("target" in $$source)) {
+            this["target"] = null;
+        }
+        if (!("display" in $$source)) {
+            this["display"] = (new charsettings$0.Display());
+        }
+        if (!("items" in $$source)) {
+            this["items"] = [];
+        }
+        if (!("channels" in $$source)) {
+            this["channels"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PreviewResult instance from a string or object.
+     */
+    static createFrom($$source: any = {}): PreviewResult {
+        const $$createField2_0 = $$createType2;
+        const $$createField3_0 = $$createType3;
+        const $$createField4_0 = $$createType4;
+        const $$createField5_0 = $$createType6;
+        const $$createField6_0 = $$createType8;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("source" in $$parsedSource) {
+            $$parsedSource["source"] = $$createField2_0($$parsedSource["source"]);
+        }
+        if ("target" in $$parsedSource) {
+            $$parsedSource["target"] = $$createField3_0($$parsedSource["target"]);
+        }
+        if ("display" in $$parsedSource) {
+            $$parsedSource["display"] = $$createField4_0($$parsedSource["display"]);
+        }
+        if ("items" in $$parsedSource) {
+            $$parsedSource["items"] = $$createField5_0($$parsedSource["items"]);
+        }
+        if ("channels" in $$parsedSource) {
+            $$parsedSource["channels"] = $$createField6_0($$parsedSource["channels"]);
+        }
+        return new PreviewResult($$parsedSource as Partial<PreviewResult>);
+    }
+}
+
+/**
+ * PreviewSide describes one file. Error is "", "missing" or "unreadable".
+ */
+export class PreviewSide {
+    "charId": string;
+    "readable": boolean;
+    "error": string;
+    "windows": number;
+    "stacks": number;
+    "locked": number;
+    "channels": number;
+
+    /**
+     * screen size most windows were saved at
+     */
+    "screenW": number;
+    "screenH": number;
+    "keys": charsettings$0.Key[];
+
+    /** Creates a new PreviewSide instance. */
+    constructor($$source: Partial<PreviewSide> = {}) {
+        if (!("charId" in $$source)) {
+            this["charId"] = "";
+        }
+        if (!("readable" in $$source)) {
+            this["readable"] = false;
+        }
+        if (!("error" in $$source)) {
+            this["error"] = "";
+        }
+        if (!("windows" in $$source)) {
+            this["windows"] = 0;
+        }
+        if (!("stacks" in $$source)) {
+            this["stacks"] = 0;
+        }
+        if (!("locked" in $$source)) {
+            this["locked"] = 0;
+        }
+        if (!("channels" in $$source)) {
+            this["channels"] = 0;
+        }
+        if (!("screenW" in $$source)) {
+            this["screenW"] = 0;
+        }
+        if (!("screenH" in $$source)) {
+            this["screenH"] = 0;
+        }
+        if (!("keys" in $$source)) {
+            this["keys"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PreviewSide instance from a string or object.
+     */
+    static createFrom($$source: any = {}): PreviewSide {
+        const $$createField9_0 = $$createType10;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("keys" in $$parsedSource) {
+            $$parsedSource["keys"] = $$createField9_0($$parsedSource["keys"]);
+        }
+        return new PreviewSide($$parsedSource as Partial<PreviewSide>);
+    }
+}
+
+/**
+ * PreviewWindow is one window or stack of windows as saved.
+ */
+export class PreviewWindow {
+    "id": string;
+    "label": string;
+    "left": number;
+    "top": number;
+    "width": number;
+    "height": number;
+    "screenW": number;
+    "screenH": number;
+
+    /**
+     * labels of the windows stacked here
+     */
+    "members": string[];
+    "locked": boolean;
+    "collapsed": boolean;
+    "compact": boolean;
+    "minimized": boolean;
+
+    /** Creates a new PreviewWindow instance. */
+    constructor($$source: Partial<PreviewWindow> = {}) {
+        if (!("id" in $$source)) {
+            this["id"] = "";
+        }
+        if (!("label" in $$source)) {
+            this["label"] = "";
+        }
+        if (!("left" in $$source)) {
+            this["left"] = 0;
+        }
+        if (!("top" in $$source)) {
+            this["top"] = 0;
+        }
+        if (!("width" in $$source)) {
+            this["width"] = 0;
+        }
+        if (!("height" in $$source)) {
+            this["height"] = 0;
+        }
+        if (!("screenW" in $$source)) {
+            this["screenW"] = 0;
+        }
+        if (!("screenH" in $$source)) {
+            this["screenH"] = 0;
+        }
+        if (!("members" in $$source)) {
+            this["members"] = [];
+        }
+        if (!("locked" in $$source)) {
+            this["locked"] = false;
+        }
+        if (!("collapsed" in $$source)) {
+            this["collapsed"] = false;
+        }
+        if (!("compact" in $$source)) {
+            this["compact"] = false;
+        }
+        if (!("minimized" in $$source)) {
+            this["minimized"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PreviewWindow instance from a string or object.
+     */
+    static createFrom($$source: any = {}): PreviewWindow {
+        const $$createField8_0 = $$createType11;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("members" in $$parsedSource) {
+            $$parsedSource["members"] = $$createField8_0($$parsedSource["members"]);
+        }
+        return new PreviewWindow($$parsedSource as Partial<PreviewWindow>);
     }
 }
 
@@ -72,7 +377,7 @@ export class Result {
      * Creates a new Result instance from a string or object.
      */
     static createFrom($$source: any = {}): Result {
-        const $$createField4_0 = $$createType0;
+        const $$createField4_0 = $$createType11;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("updated" in $$parsedSource) {
             $$parsedSource["updated"] = $$createField4_0($$parsedSource["updated"]);
@@ -82,4 +387,15 @@ export class Result {
 }
 
 // Private type creation functions
-const $$createType0 = $Create.Array($Create.Any);
+const $$createType0 = PreviewWindow.createFrom;
+const $$createType1 = $Create.Nullable($$createType0);
+const $$createType2 = PreviewSide.createFrom;
+const $$createType3 = $Create.Nullable($$createType2);
+const $$createType4 = charsettings$0.Display.createFrom;
+const $$createType5 = PreviewItem.createFrom;
+const $$createType6 = $Create.Array($$createType5);
+const $$createType7 = PreviewChannel.createFrom;
+const $$createType8 = $Create.Array($$createType7);
+const $$createType9 = charsettings$0.Key.createFrom;
+const $$createType10 = $Create.Array($$createType9);
+const $$createType11 = $Create.Array($Create.Any);

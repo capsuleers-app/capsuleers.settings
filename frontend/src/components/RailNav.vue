@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { t } from '../i18n'
 import { go, profileMeta, server, state, type View } from '../store'
-const sync: [View, 'nav.profiles' | 'nav.characters' | 'nav.review'][] = [['profiles', 'nav.profiles'], ['characters', 'nav.characters'], ['review', 'nav.review']]
+const sync: [View, 'nav.profiles' | 'nav.characters' | 'nav.preview' | 'nav.review'][] = [['profiles', 'nav.profiles'], ['characters', 'nav.characters'], ['preview', 'nav.preview'], ['review', 'nav.review']]
 </script>
 <template>
   <nav class="cap-rail" style="flex: 1 1 200px; max-width: 240px" :aria-label="t('nav.sections')">

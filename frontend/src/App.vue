@@ -4,6 +4,7 @@ import RailNav from './components/RailNav.vue'
 import TitleBar from './components/TitleBar.vue'
 import BackupsView from './views/BackupsView.vue'
 import CharactersView from './views/CharactersView.vue'
+import PreviewView from './views/PreviewView.vue'
 import ProfilesView from './views/ProfilesView.vue'
 import ReviewView from './views/ReviewView.vue'
 import { init, state } from './store'
@@ -17,6 +18,7 @@ onMounted(init)
       <RailNav />
       <ProfilesView v-if="state.view === 'profiles'" />
       <CharactersView v-else-if="state.view === 'characters'" />
+      <PreviewView v-else-if="state.view === 'preview'" />
       <ReviewView v-else-if="state.view === 'review'" />
       <BackupsView v-else />
     </div>

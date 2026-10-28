@@ -8,5 +8,10 @@ export {
 
 export {
     Meta,
+    PreviewChannel,
+    PreviewItem,
+    PreviewResult,
+    PreviewSide,
+    PreviewWindow,
     Result
 } from "./models.js";

@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import PageHead from '../components/PageHead.vue'
 import Portrait from '../components/Portrait.vue'
 import { fmtDate, fmtSize, t } from '../i18n'
-import { go, pickSource, profileMeta, rescanProfile, rows, source, state, targetRows, toggleTarget } from '../store'
+import { go, openPreview, pickSource, profileMeta, rescanProfile, rows, source, state, targetRows, toggleTarget } from '../store'
 
 const filter = ref<'all' | 'week'>('all')
 const weekAgo = Date.now() - 7 * 24 * 3600 * 1000
@@ -85,6 +85,7 @@ function clearAll() { state.targets = {}; state.done = null }
         <span style="font-size: 14px; color: var(--cap-ink)">{{ targetRows.length === 1 ? t('chars.willOne', { name: source?.name ?? '' }) : t('chars.will', { n: targetRows.length, name: source?.name ?? '' }) }}</span>
         <span class="cap-hint">{{ t('chars.backupFirst') }}</span>
         <div style="margin-left: auto; display: flex; gap: 8px">
+          <button class="cap-btn" :disabled="!source" @click="openPreview(targetRows[0]?.id)">{{ t('chars.preview') }}</button>
           <button class="cap-btn cap-btn--pri" :disabled="!targetRows.length" @click="go('review')">{{ targetRows.length === 1 ? t('chars.reviewOne') : t('chars.review', { n: targetRows.length }) }}</button>
         </div>
       </section>

@@ -86,11 +86,21 @@ export function OpenBackupsFolder(): $CancellablePromise<void> {
 }
 
 /**
+ * Preview decodes the source (and optionally a target) of one profile and compares them.
+ * lang is "it" or anything else for English. targetID may be empty.
+ */
+export function Preview(profileDir: string, sourceID: string, targetID: string, lang: string): $CancellablePromise<$models.PreviewResult> {
+    return $Call.ByID(1796783623, profileDir, sourceID, targetID, lang).then(($result: any) => {
+        return $$createType7($result);
+    });
+}
+
+/**
  * Profile re-reads one profile directory (after external changes or an apply).
  */
 export function Profile(dir: string): $CancellablePromise<eve$0.Profile> {
     return $Call.ByID(3344867102, dir).then(($result: any) => {
-        return $$createType7($result);
+        return $$createType8($result);
     });
 }
 
@@ -121,4 +131,5 @@ const $$createType3 = $Create.Map($Create.Any, $Create.Any);
 const $$createType4 = eve$0.Install.createFrom;
 const $$createType5 = $Create.Array($$createType4);
 const $$createType6 = $models.Meta.createFrom;
-const $$createType7 = eve$0.Profile.createFrom;
+const $$createType7 = $models.PreviewResult.createFrom;
+const $$createType8 = eve$0.Profile.createFrom;
