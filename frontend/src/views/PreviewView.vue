@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import ScrollTable from '../components/ScrollTable.vue'
 import { computed, ref, watch } from 'vue'
-import type { PreviewWindow } from '../../bindings/github.com/WilliamFalci/capsuleers.settings/models'
+import type { PreviewWindow } from '../../bindings/github.com/capsuleers-app/capsuleers.settings/models'
 import { AppWindow, Clock, Compass, Eye, FileWarning, FolderOpen, KeyRound, LayoutGrid, LayoutTemplate, MessageSquare, Monitor, Rocket, Shapes, Store, Swords, Users } from 'lucide-vue-next'
 import type { Component } from 'vue'
 import { t, titleParts, type Key } from '../i18n'

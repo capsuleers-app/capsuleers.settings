@@ -10,11 +10,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/WilliamFalci/capsuleers.settings/internal/accounts"
-	"github.com/WilliamFalci/capsuleers.settings/internal/backup"
-	"github.com/WilliamFalci/capsuleers.settings/internal/config"
-	"github.com/WilliamFalci/capsuleers.settings/internal/esi"
-	"github.com/WilliamFalci/capsuleers.settings/internal/eve"
+	"github.com/capsuleers-app/capsuleers.settings/internal/accounts"
+	"github.com/capsuleers-app/capsuleers.settings/internal/backup"
+	"github.com/capsuleers-app/capsuleers.settings/internal/config"
+	"github.com/capsuleers-app/capsuleers.settings/internal/esi"
+	"github.com/capsuleers-app/capsuleers.settings/internal/eve"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 

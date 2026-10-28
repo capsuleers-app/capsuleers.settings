@@ -80,7 +80,7 @@ jobs:
         if: matrix.label == 'linux'
         run: |
           go build -buildvcs=false -tags "gtk3 production" \
-            -ldflags "-s -w -X github.com/WilliamFalci/capsuleers.settings/internal/esi.AppVersion=${{ steps.ver.outputs.version }}" \
+            -ldflags "-s -w -X github.com/capsuleers-app/capsuleers.settings/internal/esi.AppVersion=${{ steps.ver.outputs.version }}" \
             -o dist/capsuleers.settings-linux-amd64 .
 
       - name: Build Windows binary
@@ -91,7 +91,7 @@ jobs:
         run: |
           go test ./internal/...
           go build -buildvcs=false -tags production \
-            -ldflags "-s -w -H windowsgui -X github.com/WilliamFalci/capsuleers.settings/internal/esi.AppVersion=${{ steps.ver.outputs.version }}" \
+            -ldflags "-s -w -H windowsgui -X github.com/capsuleers-app/capsuleers.settings/internal/esi.AppVersion=${{ steps.ver.outputs.version }}" \
             -o dist/capsuleers.settings-windows-amd64.exe .
 
       # Hand-off to the release job. `retention-days: 1` because this copy is

@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/WilliamFalci/capsuleers.settings/internal/charsettings"
+	"github.com/capsuleers-app/capsuleers.settings/internal/charsettings"
 )
 
 // Read-only preview of a character's client settings (never writes). A file that cannot be

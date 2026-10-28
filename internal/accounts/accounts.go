@@ -12,7 +12,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/WilliamFalci/capsuleers.settings/internal/marshal"
+	"github.com/capsuleers-app/capsuleers.settings/internal/marshal"
 )
 
 // Evidence sources. Resolve ranks them (see tier).

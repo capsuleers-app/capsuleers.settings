@@ -8,7 +8,7 @@ character to many**, safely. Set up one character the way you like it, then appl
 of your alts in a few clicks.
 
 It belongs to the [**Capsuleers**](https://capsuleers.app) family, next to
-[**Capsuleers.Intel**](https://github.com/WilliamFalci/capsuleers.intel): same look, a small
+[**Capsuleers.Intel**](https://github.com/capsuleers-app/capsuleers.intel): same look, a small
 single binary, nothing to set up on first launch.
 
 ## Screenshots

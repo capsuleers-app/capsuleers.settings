@@ -7,7 +7,7 @@ import (
 	"encoding/binary"
 	"math"
 
-	"github.com/WilliamFalci/capsuleers.settings/internal/marshal"
+	"github.com/capsuleers-app/capsuleers.settings/internal/marshal"
 )
 
 // Long is emitted as a length-prefixed little-endian integer (opcode 0x2f), like the

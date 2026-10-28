@@ -6,7 +6,7 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig(({ mode }) => ({
   plugins: [vue()],
   resolve: mode === 'demo'
-    ? { alias: [{ find: /^.*\/bindings\/github\.com\/WilliamFalci\/capsuleers\.settings\/service$/, replacement: fileURLToPath(new URL('./src/demo/service.ts', import.meta.url)) }] }
+    ? { alias: [{ find: /^.*\/bindings\/github\.com\/capsuleers-app\/capsuleers\.settings\/service$/, replacement: fileURLToPath(new URL('./src/demo/service.ts', import.meta.url)) }] }
     : {},
   build: { outDir: 'dist', emptyOutDir: true, target: 'es2022', assetsInlineLimit: 0 },
 }))

@@ -1,4 +1,4 @@
-module github.com/WilliamFalci/capsuleers.settings
+module github.com/capsuleers-app/capsuleers.settings
 
 go 1.26.0
 

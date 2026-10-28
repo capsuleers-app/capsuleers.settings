@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/WilliamFalci/capsuleers.settings/internal/marshal"
-	mt "github.com/WilliamFalci/capsuleers.settings/internal/marshal/marshaltest"
+	"github.com/capsuleers-app/capsuleers.settings/internal/marshal"
+	mt "github.com/capsuleers-app/capsuleers.settings/internal/marshal/marshaltest"
 )
 
 func fakeChar(t *testing.T, dir, id string, overview any) {

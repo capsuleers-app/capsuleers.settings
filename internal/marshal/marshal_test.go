@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/WilliamFalci/capsuleers.settings/internal/marshal"
-	mt "github.com/WilliamFalci/capsuleers.settings/internal/marshal/marshaltest"
+	"github.com/capsuleers-app/capsuleers.settings/internal/marshal"
+	mt "github.com/capsuleers-app/capsuleers.settings/internal/marshal/marshaltest"
 )
 
 func sample() any {

@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/WilliamFalci/capsuleers.settings/internal/marshal"
+	"github.com/capsuleers-app/capsuleers.settings/internal/marshal"
 )
 
 // maxFile bounds what Load reads (real files are ~25 KB).

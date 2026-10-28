@@ -4,7 +4,7 @@ import { computed } from 'vue'
 import { Archive, ArchiveX, Check, CircleX, Files, FolderOpen, History, RotateCcw, Trash2 } from 'lucide-vue-next'
 import PageHead from '../components/PageHead.vue'
 import Portrait from '../components/Portrait.vue'
-import * as Svc from '../../bindings/github.com/WilliamFalci/capsuleers.settings/service'
+import * as Svc from '../../bindings/github.com/capsuleers-app/capsuleers.settings/service'
 import { fmtDate, fmtSize, t } from '../i18n'
 import { accountLabel, accountTitle, clientRunning, deleteBackup, initialsOf, KEEP_BACKUPS, restore, state } from '../store'
 

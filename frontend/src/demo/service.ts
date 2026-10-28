@@ -101,7 +101,7 @@ let identPolls = 0
 let identOn = false
 const done = <T>(v: T): Promise<T> => Promise.resolve(JSON.parse(JSON.stringify(v ?? null)))
 
-export const Meta = () => done({ version: 'demo', repo: 'https://github.com/WilliamFalci/capsuleers.settings' })
+export const Meta = () => done({ version: 'demo', repo: 'https://github.com/capsuleers-app/capsuleers.settings' })
 export const Installs = () => done(installs)
 export const Profile = (dir: string) => done(installs.flatMap((i) => i.servers.flatMap((s) => s.profiles)).find((p) => p.dir === dir) ?? mainProfile)
 export const AddFolder = () => done('')

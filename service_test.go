@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/WilliamFalci/capsuleers.settings/internal/backup"
+	"github.com/capsuleers-app/capsuleers.settings/internal/backup"
 )
 
 func TestResultMapsErrors(t *testing.T) {

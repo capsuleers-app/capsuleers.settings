@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	cs "github.com/WilliamFalci/capsuleers.settings/internal/charsettings"
-	"github.com/WilliamFalci/capsuleers.settings/internal/marshal"
-	mt "github.com/WilliamFalci/capsuleers.settings/internal/marshal/marshaltest"
+	cs "github.com/capsuleers-app/capsuleers.settings/internal/charsettings"
+	"github.com/capsuleers-app/capsuleers.settings/internal/marshal"
+	mt "github.com/capsuleers-app/capsuleers.settings/internal/marshal/marshaltest"
 )
 
 // wrap stores a value the way the client does: (timestamp, value).

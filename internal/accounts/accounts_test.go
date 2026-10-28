@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	mt "github.com/WilliamFalci/capsuleers.settings/internal/marshal/marshaltest"
+	mt "github.com/capsuleers-app/capsuleers.settings/internal/marshal/marshaltest"
 )
 
 var t0 = time.Date(2026, 6, 24, 21, 0, 0, 0, time.UTC)

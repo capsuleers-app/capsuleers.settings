@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/WilliamFalci/capsuleers.settings/internal/accounts"
-	"github.com/WilliamFalci/capsuleers.settings/internal/config"
+	"github.com/capsuleers-app/capsuleers.settings/internal/accounts"
+	"github.com/capsuleers-app/capsuleers.settings/internal/config"
 )
 
 const (
