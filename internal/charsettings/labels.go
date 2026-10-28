@@ -7,50 +7,53 @@ import (
 
 type pair struct{ en, it string }
 
-// Friendly names of common client windows. Unknown ids are shown raw.
-var known = map[string]pair{
-	"overview":                 {"Overview", "Panoramica"},
-	"selecteditemview":         {"Selected item", "Oggetto selezionato"},
-	"droneview":                {"Drones", "Droni"},
-	"dronesview":               {"Drones", "Droni"},
-	"probeScannerWindow":       {"Probe scanner", "Scanner sonde"},
-	"directionalScannerWindow": {"D-Scan", "D-Scan"},
-	"directionalScanner":       {"D-Scan", "D-Scan"},
-	"inventory":                {"Inventory", "Inventario"},
-	"ActiveShipCargo":          {"Ship cargo", "Stiva della nave"},
-	"fitting":                  {"Fitting", "Fitting"},
-	"fittingWnd":               {"Fitting", "Fitting"},
-	"wallet":                   {"Wallet", "Portafoglio"},
-	"walletWindow":             {"Wallet", "Portafoglio"},
-	"neocom":                   {"Neocom", "Neocom"},
-	"chat":                     {"Chat", "Chat"},
-	"ChatWindowStack":          {"Chat", "Chat"},
-	"invitestack":              {"Chat invitations", "Inviti chat"},
-	"lobbyWnd":                 {"Station lobby", "Lobby della stazione"},
-	"fleetwindow":              {"Fleet", "Flotta"},
-	"FleetComposition":         {"Fleet composition", "Composizione flotta"},
-	"watchlistpanel":           {"Watch list", "Lista di controllo"},
-	"marketbuyaction":          {"Buy from market", "Acquisto dal mercato"},
-	"mail":                     {"EVE Mail", "EVE Mail"},
-	"SkillPlanner":             {"Skill planner", "Piano abilità"},
-	"careerPortal":             {"Career portal", "Portale carriera"},
-	"contractdetails":          {"Contract", "Contratto"},
-	"MultiBuy":                 {"Multibuy", "Multibuy"},
-	"tradeWnd":                 {"Trade", "Scambio"},
-	"primary_map_panel":        {"Map panel", "Pannello mappa"},
-	"MapCmdWindow":             {"Map commands", "Comandi mappa"},
-	"telecom":                  {"Telecom", "Telecom"},
+// Names of common client windows, as the EVE client shows them. They are game names, so they
+// stay in English in every UI language (the Italian client would not match them anyway).
+// Unknown ids are shown raw.
+var known = map[string]string{
+	"overview":                 "Overview",
+	"selecteditemview":         "Selected Item",
+	"droneview":                "Drones",
+	"dronesview":               "Drones",
+	"probeScannerWindow":       "Probe Scanner",
+	"directionalScannerWindow": "Directional Scanner",
+	"directionalScanner":       "Directional Scanner",
+	"inventory":                "Inventory",
+	"ActiveShipCargo":          "Ship Cargo",
+	"fitting":                  "Fitting",
+	"fittingWnd":               "Fitting",
+	"wallet":                   "Wallet",
+	"walletWindow":             "Wallet",
+	"neocom":                   "Neocom",
+	"chat":                     "Chat",
+	"ChatWindowStack":          "Chat",
+	"invitestack":              "Chat Invitations",
+	"lobbyWnd":                 "Station Services",
+	"fleetwindow":              "Fleet",
+	"FleetComposition":         "Fleet Composition",
+	"watchlistpanel":           "Watch List",
+	"marketbuyaction":          "Buy",
+	"mail":                     "EVE Mail",
+	"SkillPlanner":             "Skill Plans",
+	"careerPortal":             "Opportunities",
+	"contractdetails":          "Contract",
+	"MultiBuy":                 "Multibuy",
+	"tradeWnd":                 "Trade",
+	"primary_map_panel":        "Map",
+	"MapCmdWindow":             "Map",
+	"telecom":                  "Telecom",
 }
 
 var (
-	overviewN  = regexp.MustCompile(`^overview_(\d+)$`)
-	placesRe   = regexp.MustCompile(`^\('myPlaces'`)
-	numericRe  = regexp.MustCompile(`^\d+$`)
-	channelFix = map[string]pair{
-		"local":    {"Local", "Locale"},
-		"corp":     {"Corp", "Corp"},
-		"alliance": {"Alliance", "Alleanza"},
-		"fleet":    {"Fleet", "Flotta"},
+	overviewN = regexp.MustCompile(`^overview_(\d+)$`)
+	placesRe  = regexp.MustCompile(`^\('myPlaces'`)
+	numericRe = regexp.MustCompile(`^\d+$`)
+	// Fixed channels, as named in the game (not translated).
+	channelFix = map[string]string{
+		"local":    "Local",
+		"corp":     "Corp",
+		"alliance": "Alliance",
+		"fleet":    "Fleet",
 	}
 )
 
@@ -66,8 +69,8 @@ func ChannelLabel(c Channel, lang string) string {
 	if c.Name != "" {
 		return c.Name
 	}
-	if p, ok := channelFix[c.Kind]; ok {
-		return pick(p, lang)
+	if n, ok := channelFix[c.Kind]; ok {
+		return n
 	}
 	switch c.Kind {
 	case "private":
@@ -87,14 +90,14 @@ func WindowLabel(id, lang string, channels map[string]Channel, memberLabels []st
 		}
 		return ChannelLabel(Channel{ID: id, Kind: channelKind(id)}, lang)
 	}
-	if p, ok := known[id]; ok && !(len(memberLabels) > 1 && id != "ChatWindowStack") {
-		return pick(p, lang)
+	if n, ok := known[id]; ok && !(len(memberLabels) > 1 && id != "ChatWindowStack") {
+		return n
 	}
 	if m := overviewN.FindStringSubmatch(id); m != nil {
-		return pick(pair{"Overview ", "Panoramica "}, lang) + m[1]
+		return "Overview " + m[1]
 	}
 	if placesRe.MatchString(id) {
-		return pick(pair{"Places", "Luoghi"}, lang)
+		return "Places"
 	}
 	if len(memberLabels) > 0 {
 		return strings.Join(memberLabels, " · ")

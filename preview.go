@@ -13,7 +13,7 @@ import (
 )
 
 // Read-only preview of a character's client settings (never writes). A file that cannot be
-// decoded gives an honest per-side error; copying does not depend on any of this.
+// decoded gives an honest error; copying does not depend on any of this.
 
 var idRe = regexp.MustCompile(`^\d{1,20}$`)
 
@@ -27,6 +27,7 @@ type PreviewWindow struct {
 	Height    int      `json:"height"`
 	ScreenW   int      `json:"screenW"`
 	ScreenH   int      `json:"screenH"`
+	Category  string   `json:"category"`
 	Members   []string `json:"members"` // labels of the windows stacked here
 	Locked    bool     `json:"locked"`
 	Collapsed bool     `json:"collapsed"`
@@ -34,25 +35,14 @@ type PreviewWindow struct {
 	Minimized bool     `json:"minimized"`
 }
 
-// PreviewItem pairs a window in the source with the same id in the target. Status is
-// same, move, add (only in source) or remove (only in target); empty without a target.
-type PreviewItem struct {
-	ID     string         `json:"id"`
-	Label  string         `json:"label"`
-	Status string         `json:"status"`
-	Source *PreviewWindow `json:"source"`
-	Target *PreviewWindow `json:"target"`
-}
-
-// PreviewChannel is a chat channel; Status is same, add, remove, or empty without a target.
+// PreviewChannel is a chat channel.
 type PreviewChannel struct {
-	ID     string `json:"id"`
-	Kind   string `json:"kind"`
-	Label  string `json:"label"`
-	Status string `json:"status"`
+	ID    string `json:"id"`
+	Kind  string `json:"kind"`
+	Label string `json:"label"`
 }
 
-// PreviewSide describes one file. Error is "", "missing" or "unreadable".
+// PreviewSide describes the source file. Error is "", "missing" or "unreadable".
 type PreviewSide struct {
 	CharID   string             `json:"charId"`
 	Readable bool               `json:"readable"`
@@ -71,9 +61,8 @@ type PreviewResult struct {
 	OK       bool                 `json:"ok"`
 	Code     string               `json:"code"`
 	Source   PreviewSide          `json:"source"`
-	Target   *PreviewSide         `json:"target"`
 	Display  charsettings.Display `json:"display"`
-	Items    []PreviewItem        `json:"items"`
+	Windows  []PreviewWindow      `json:"windows"`
 	Channels []PreviewChannel     `json:"channels"`
 }
 
@@ -117,21 +106,15 @@ func loadSide(dir, id string) (PreviewSide, *charsettings.Settings) {
 	return side, s
 }
 
-// Preview decodes the source (and optionally a target) of one profile and compares them.
-// lang is "it" or anything else for English. targetID may be empty.
-func (s *Service) Preview(profileDir, sourceID, targetID, lang string) PreviewResult {
+// Preview decodes the source character of one profile. lang is "it" or anything else for English.
+func (s *Service) Preview(profileDir, sourceID, lang string) PreviewResult {
 	dir := filepath.Clean(profileDir)
-	if !filepath.IsAbs(dir) || !strings.HasPrefix(filepath.Base(dir), "settings_") || !idRe.MatchString(sourceID) || (targetID != "" && !idRe.MatchString(targetID)) {
-		return PreviewResult{Code: "bad_request", Items: []PreviewItem{}, Channels: []PreviewChannel{}}
+	if !filepath.IsAbs(dir) || !strings.HasPrefix(filepath.Base(dir), "settings_") || !idRe.MatchString(sourceID) {
+		return PreviewResult{Code: "bad_request", Windows: []PreviewWindow{}, Channels: []PreviewChannel{}}
 	}
-	res := PreviewResult{OK: true, Items: []PreviewItem{}, Channels: []PreviewChannel{}, Display: charsettings.LoadDisplay(filepath.Join(dir, "core_public__.yaml"))}
-	var src, tgt *charsettings.Settings
+	res := PreviewResult{OK: true, Windows: []PreviewWindow{}, Channels: []PreviewChannel{}, Display: charsettings.LoadDisplay(filepath.Join(dir, "core_public__.yaml"))}
+	var src *charsettings.Settings
 	res.Source, src = loadSide(dir, sourceID)
-	if targetID != "" {
-		var side PreviewSide
-		side, tgt = loadSide(dir, targetID)
-		res.Target = &side
-	}
 	if src == nil {
 		return res
 	}
@@ -140,17 +123,8 @@ func (s *Service) Preview(profileDir, sourceID, targetID, lang string) PreviewRe
 	for _, c := range src.Channels {
 		chans[c.ID] = c
 	}
-	if tgt != nil {
-		for _, c := range tgt.Channels {
-			if _, ok := chans[c.ID]; !ok {
-				chans[c.ID] = c
-			}
-		}
-	}
-	toWin := func(w *charsettings.Window) *PreviewWindow {
-		if w == nil {
-			return nil
-		}
+	for i := range src.Windows {
+		w := &src.Windows[i]
 		labels := make([]string, 0, len(w.Members))
 		for _, m := range w.Members {
 			labels = append(labels, charsettings.WindowLabel(m, lang, chans, nil))
@@ -159,37 +133,15 @@ func (s *Service) Preview(profileDir, sourceID, targetID, lang string) PreviewRe
 		if len(short) > 3 {
 			short = append(append([]string(nil), labels[:3]...), fmt.Sprintf("+%d", len(labels)-3))
 		}
-		return &PreviewWindow{ID: w.ID, Label: charsettings.WindowLabel(w.ID, lang, chans, short),
+		res.Windows = append(res.Windows, PreviewWindow{ID: w.ID, Label: charsettings.WindowLabel(w.ID, lang, chans, short),
 			Left: w.Left, Top: w.Top, Width: w.Width, Height: w.Height, ScreenW: w.ScreenW, ScreenH: w.ScreenH,
-			Members: labels, Locked: w.Locked, Collapsed: w.Collapsed, Compact: w.Compact, Minimized: w.Minimized}
+			Category: charsettings.WindowCategory(w.ID, w.Members), Members: labels, Locked: w.Locked, Collapsed: w.Collapsed, Compact: w.Compact, Minimized: w.Minimized})
 	}
-
-	if tgt != nil {
-		for _, d := range charsettings.DiffWindows(src, tgt) {
-			it := PreviewItem{ID: d.ID, Status: d.Status, Source: toWin(d.Source), Target: toWin(d.Target)}
-			it.Label = firstLabel(it)
-			res.Items = append(res.Items, it)
-		}
-		for _, d := range charsettings.DiffChannels(src, tgt) {
-			res.Channels = append(res.Channels, PreviewChannel{ID: d.Channel.ID, Kind: d.Channel.Kind, Label: charsettings.ChannelLabel(d.Channel, lang), Status: d.Status})
-		}
-	} else {
-		for i := range src.Windows {
-			it := PreviewItem{ID: src.Windows[i].ID, Source: toWin(&src.Windows[i])}
-			it.Label = firstLabel(it)
-			res.Items = append(res.Items, it)
-		}
-		for _, c := range src.Channels {
-			res.Channels = append(res.Channels, PreviewChannel{ID: c.ID, Kind: c.Kind, Label: charsettings.ChannelLabel(c, lang)})
-		}
+	for _, c := range src.Channels {
+		res.Channels = append(res.Channels, PreviewChannel{ID: c.ID, Kind: c.Kind, Label: charsettings.ChannelLabel(c, lang)})
 	}
-	sort.SliceStable(res.Items, func(i, j int) bool { return strings.ToLower(res.Items[i].Label) < strings.ToLower(res.Items[j].Label) })
+	sort.SliceStable(res.Windows, func(i, j int) bool {
+		return strings.ToLower(res.Windows[i].Label) < strings.ToLower(res.Windows[j].Label)
+	})
 	return res
-}
-
-func firstLabel(it PreviewItem) string {
-	if it.Source != nil {
-		return it.Source.Label
-	}
-	return it.Target.Label
 }

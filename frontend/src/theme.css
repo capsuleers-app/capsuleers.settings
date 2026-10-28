@@ -30,6 +30,13 @@ a { color: inherit; text-decoration: none; }
 a.lnk { color: var(--cap-accent); } a.lnk:hover { color: #f97316; }
 .shell { height: 100%; display: flex; flex-direction: column; background: var(--cap-hull); color: var(--cap-ink); font-family: var(--font-sans); }
 .shell__body { flex: 1; min-height: 0; overflow: auto; display: flex; flex-wrap: wrap; gap: 16px; padding: 16px; align-items: flex-start; }
+/* Rail fermo mentre la vista scorre; solo quando sta di fianco (stretta: va a capo sopra e coprirebbe la vista). */
+@media (min-width: 720px) {
+  .shell__rail { position: sticky; top: 0; max-height: calc(100vh - 44px - 32px); overflow-y: auto; box-sizing: border-box; }
+}
+/* Profilo attivo: informativo, non navigabile, quindi in fondo al rail. */
+.shell__rail { display: flex; flex-direction: column; }
+.rail__foot { margin-top: auto; }
 .titlebar { height: 44px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 8px 0 16px; background: var(--cap-panel); border-bottom: 1px solid var(--cap-line); --wails-draggable: drag; user-select: none; }
 .titlebar__ctl { margin-left: auto; display: flex; align-items: center; gap: 8px; --wails-draggable: no-drag; }
 .page-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 24px; padding: 20px 24px; background: var(--cap-panel); border: 1px solid var(--cap-line); }
@@ -44,3 +51,26 @@ a.lnk { color: var(--cap-accent); } a.lnk:hover { color: #f97316; }
 .app-portrait--lg { width: 64px; height: 64px; font-size: 18px; }
 .sr { position: absolute; left: -9999px; }
 button:disabled, .cap-btn:disabled { cursor: not-allowed; }
+.ic { flex: none; }
+.kvk { display: inline-flex; align-items: center; gap: 6px; }
+.cap-empty .ic-lg { color: var(--cap-ink-3); }
+/* Altezza piena: a 900x620 e oltre la pagina non scorre; il contenuto lungo scorre nel proprio pannello. Sotto, scorre la pagina. */
+@media (min-width: 900px) and (min-height: 620px) {
+  .shell__body { flex-wrap: nowrap; overflow: hidden; align-items: stretch; }
+  .shell__rail { align-self: stretch; max-height: none; }
+  .stack { min-height: 0; }
+  .stack > * { flex: none; }
+  .stack > .fill, .stack > .split { flex: 1 1 0; min-height: 0; }
+  .fill { display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+  .fill > * { flex: none; }
+  .fill > .fill { flex: 1 1 0; }
+  .fill > .scroll { flex: 1 1 0; min-height: 0; overflow: auto; }
+  .fill > .stable { flex: 1 1 0; min-height: 0; }
+  .split { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: stretch; gap: 16px; }
+  .split > * { min-width: 0; min-height: 0; overflow: auto; }
+  .split > .fill { overflow: hidden; }
+}
+/* Barra azioni ancorata in basso: in colonna flex e' l'ultimo elemento fisso; in modalita' pagina scorrevole resta appiccicata. */
+.bar { position: sticky; bottom: 0; z-index: 2; background: var(--cap-panel); border-top: 1px solid var(--cap-line); }
+/* Intestazioni delle tabelle fisse: una riga sola, mai sovrapposte alla colonna accanto. */
+.stable__head th { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

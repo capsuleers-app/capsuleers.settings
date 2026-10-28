@@ -28,40 +28,25 @@ func fakeChar(t *testing.T, dir, id string, overview any) {
 	}
 }
 
-func TestPreviewCompares(t *testing.T) {
+func TestPreviewSource(t *testing.T) {
 	dir := filepath.Join(t.TempDir(), "settings_Default")
 	_ = os.MkdirAll(dir, 0o700)
 	fakeChar(t, dir, "1", mt.T(100, 100, 300, 300, 1920, 1080))
-	fakeChar(t, dir, "2", mt.T(500, 100, 300, 300, 1920, 1080))
 	_ = os.WriteFile(filepath.Join(dir, "core_char_3.dat"), []byte("not a settings file"), 0o600)
 	s := &Service{}
 
-	r := s.Preview(dir, "1", "2", "it")
-	if !r.OK || r.Target == nil || !r.Source.Readable || !r.Target.Readable || len(r.Items) != 2 {
+	r := s.Preview(dir, "1", "it")
+	if !r.OK || !r.Source.Readable || len(r.Windows) != 2 || r.Windows[0].Label == "" || r.Windows[0].Category == "" {
 		t.Fatalf("%+v", r)
 	}
-	st := map[string]string{}
-	for _, it := range r.Items {
-		st[it.ID] = it.Status
-	}
-	if st["overview"] != "move" || st["fitting"] != "same" || r.Items[0].Label == "" {
-		t.Fatalf("statuses %v", st)
-	}
-
-	if r := s.Preview(dir, "1", "", "en"); !r.OK || r.Target != nil || r.Items[0].Status != "" {
-		t.Fatalf("no target: %+v", r)
-	}
-	if r := s.Preview(dir, "1", "3", "en"); r.Target == nil || r.Target.Readable || r.Target.Error != "unreadable" || len(r.Items) != 2 || r.Items[0].Status != "" {
-		t.Fatalf("unreadable target: %+v", r.Target)
-	}
-	if r := s.Preview(dir, "3", "1", "en"); r.Source.Readable || r.Source.Error != "unreadable" {
+	if r := s.Preview(dir, "3", "en"); r.Source.Readable || r.Source.Error != "unreadable" {
 		t.Fatalf("unreadable source: %+v", r.Source)
 	}
-	if r := s.Preview(dir, "99", "", "en"); r.Source.Error != "missing" {
+	if r := s.Preview(dir, "99", "en"); r.Source.Error != "missing" {
 		t.Fatalf("missing: %+v", r.Source)
 	}
-	for _, bad := range [][3]string{{"relative/settings_x", "1", ""}, {filepath.Join(dir, "..", "other"), "1", ""}, {dir, "../1", ""}, {dir, "1", "x"}} {
-		if r := s.Preview(bad[0], bad[1], bad[2], "en"); r.Code != "bad_request" || r.OK {
+	for _, bad := range [][2]string{{"relative/settings_x", "1"}, {filepath.Join(dir, "..", "other"), "1"}, {dir, "../1"}} {
+		if r := s.Preview(bad[0], bad[1], "en"); r.Code != "bad_request" || r.OK {
 			t.Fatalf("%v accepted", bad)
 		}
 	}

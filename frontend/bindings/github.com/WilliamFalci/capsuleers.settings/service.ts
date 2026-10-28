@@ -12,6 +12,9 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as accounts$0 from "./internal/accounts/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as backup$0 from "./internal/backup/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -22,6 +25,24 @@ import * as eve$0 from "./internal/eve/models.js";
 import * as $models from "./models.js";
 
 /**
+ * AccountPlan shows which account files copying the source's core_user would overwrite.
+ */
+export function AccountPlan(req: backup$0.ApplyRequest): $CancellablePromise<accounts$0.Plan> {
+    return $Call.ByID(1390699423, req).then(($result: any) => {
+        return $$createType0($result);
+    });
+}
+
+/**
+ * Accounts returns the character -> account mapping of a profile.
+ */
+export function Accounts(profileDir: string): $CancellablePromise<$models.AccountsResult> {
+    return $Call.ByID(3607411885, profileDir).then(($result: any) => {
+        return $$createType1($result);
+    });
+}
+
+/**
  * AddFolder asks for a folder and stores it. Empty string means the dialog was cancelled.
  */
 export function AddFolder(): $CancellablePromise<string> {
@@ -29,17 +50,19 @@ export function AddFolder(): $CancellablePromise<string> {
 }
 
 /**
- * Apply backs up the targets and copies the source character file over each of them.
+ * Apply backs up the targets and copies the source character file over each of them. With
+ * CopyUser it also copies the source account's core_user over the targets' accounts, planned
+ * here from the stored/suggested links; any target without a known account refuses the apply.
  */
 export function Apply(req: backup$0.ApplyRequest): $CancellablePromise<$models.Result> {
     return $Call.ByID(3773298571, req).then(($result: any) => {
-        return $$createType0($result);
+        return $$createType2($result);
     });
 }
 
 export function Backups(): $CancellablePromise<backup$0.Info[]> {
     return $Call.ByID(1037382932).then(($result: any) => {
-        return $$createType2($result);
+        return $$createType4($result);
     });
 }
 
@@ -48,7 +71,7 @@ export function Backups(): $CancellablePromise<backup$0.Info[]> {
  */
 export function CachedNames(ids: string[]): $CancellablePromise<{ [_ in string]?: string }> {
     return $Call.ByID(464177377, ids).then(($result: any) => {
-        return $$createType3($result);
+        return $$createType5($result);
     });
 }
 
@@ -64,17 +87,49 @@ export function DeleteBackup(name: string): $CancellablePromise<void> {
 }
 
 /**
+ * IdentifyPoll returns what the running identification found so far (inactive when none runs).
+ */
+export function IdentifyPoll(): $CancellablePromise<$models.IdentifyState> {
+    return $Call.ByID(3958238960).then(($result: any) => {
+        return $$createType6($result);
+    });
+}
+
+/**
+ * IdentifyStart begins the guided identification of a profile: it snapshots the character and
+ * account files (read-only) and watches them; when the changes settle, the characters that
+ * changed together with exactly one account file are mapped to it and saved in the app config.
+ */
+export function IdentifyStart(profileDir: string): $CancellablePromise<void> {
+    return $Call.ByID(3474069591, profileDir);
+}
+
+/**
+ * IdentifyStop ends the identification (panel closed, FINE pressed, view or profile changed).
+ */
+export function IdentifyStop(): $CancellablePromise<void> {
+    return $Call.ByID(543225661);
+}
+
+/**
  * Installs scans well-known roots plus manually added folders.
  */
 export function Installs(): $CancellablePromise<eve$0.Install[]> {
     return $Call.ByID(3373164825).then(($result: any) => {
-        return $$createType5($result);
+        return $$createType8($result);
     });
+}
+
+/**
+ * LastSource returns the remembered source of a profile, "" when none or no longer present.
+ */
+export function LastSource(profileDir: string): $CancellablePromise<string> {
+    return $Call.ByID(4039633076, profileDir);
 }
 
 export function Meta(): $CancellablePromise<$models.Meta> {
     return $Call.ByID(2538188168).then(($result: any) => {
-        return $$createType6($result);
+        return $$createType9($result);
     });
 }
 
@@ -86,12 +141,11 @@ export function OpenBackupsFolder(): $CancellablePromise<void> {
 }
 
 /**
- * Preview decodes the source (and optionally a target) of one profile and compares them.
- * lang is "it" or anything else for English. targetID may be empty.
+ * Preview decodes the source character of one profile. lang is "it" or anything else for English.
  */
-export function Preview(profileDir: string, sourceID: string, targetID: string, lang: string): $CancellablePromise<$models.PreviewResult> {
-    return $Call.ByID(1796783623, profileDir, sourceID, targetID, lang).then(($result: any) => {
-        return $$createType7($result);
+export function Preview(profileDir: string, sourceID: string, lang: string): $CancellablePromise<$models.PreviewResult> {
+    return $Call.ByID(1796783623, profileDir, sourceID, lang).then(($result: any) => {
+        return $$createType10($result);
     });
 }
 
@@ -100,7 +154,7 @@ export function Preview(profileDir: string, sourceID: string, targetID: string, 
  */
 export function Profile(dir: string): $CancellablePromise<eve$0.Profile> {
     return $Call.ByID(3344867102, dir).then(($result: any) => {
-        return $$createType8($result);
+        return $$createType11($result);
     });
 }
 
@@ -113,23 +167,40 @@ export function RemoveFolder(path: string): $CancellablePromise<void> {
  */
 export function ResolveNames(ids: string[]): $CancellablePromise<{ [_ in string]?: string }> {
     return $Call.ByID(3074822833, ids).then(($result: any) => {
-        return $$createType3($result);
+        return $$createType5($result);
     });
 }
 
 export function Restore(name: string): $CancellablePromise<$models.Result> {
     return $Call.ByID(2575713665, name).then(($result: any) => {
-        return $$createType0($result);
+        return $$createType2($result);
     });
 }
 
+/**
+ * SetAccountAlias names an account of the profile ("" removes the name). App config only.
+ */
+export function SetAccountAlias(profileDir: string, userID: string, alias: string): $CancellablePromise<void> {
+    return $Call.ByID(55260242, profileDir, userID, alias);
+}
+
+/**
+ * SetLastSource remembers the source picked in a profile, restored by LastSource at startup.
+ */
+export function SetLastSource(profileDir: string, charID: string): $CancellablePromise<void> {
+    return $Call.ByID(2169756102, profileDir, charID);
+}
+
 // Private type creation functions
-const $$createType0 = $models.Result.createFrom;
-const $$createType1 = backup$0.Info.createFrom;
-const $$createType2 = $Create.Array($$createType1);
-const $$createType3 = $Create.Map($Create.Any, $Create.Any);
-const $$createType4 = eve$0.Install.createFrom;
-const $$createType5 = $Create.Array($$createType4);
-const $$createType6 = $models.Meta.createFrom;
-const $$createType7 = $models.PreviewResult.createFrom;
-const $$createType8 = eve$0.Profile.createFrom;
+const $$createType0 = accounts$0.Plan.createFrom;
+const $$createType1 = $models.AccountsResult.createFrom;
+const $$createType2 = $models.Result.createFrom;
+const $$createType3 = backup$0.Info.createFrom;
+const $$createType4 = $Create.Array($$createType3);
+const $$createType5 = $Create.Map($Create.Any, $Create.Any);
+const $$createType6 = $models.IdentifyState.createFrom;
+const $$createType7 = eve$0.Install.createFrom;
+const $$createType8 = $Create.Array($$createType7);
+const $$createType9 = $models.Meta.createFrom;
+const $$createType10 = $models.PreviewResult.createFrom;
+const $$createType11 = eve$0.Profile.createFrom;

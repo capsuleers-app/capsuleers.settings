@@ -1,5 +1,6 @@
-// Package backup copies one core_char file over many targets, always after zipping the files
-// it is about to overwrite, and restores such zips. Nothing is written outside the profile dir
+// Package backup copies one core_char file over many targets (and optionally one core_user file
+// over other accounts), always after zipping the files it is about to overwrite, and restores
+// such zips. Nothing is written outside the profile dir
 // recorded in the backup manifest / chosen by the caller.
 package backup
 
@@ -27,13 +28,16 @@ var (
 	zipNameRe      = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}_\d{6}(-\d+)?\.zip$`)
 	datNameRe      = regexp.MustCompile(`^core_(char|user)_\d+\.dat$`)
 	charNameRe     = regexp.MustCompile(`^core_char_(\d+)\.dat$`)
+	userNameRe     = regexp.MustCompile(`^core_user_(\d+)\.dat$`)
 	profileDirName = "settings_"
 )
 
 type Entry struct {
 	Zip      string `json:"zip"`      // entry name inside the zip
 	Original string `json:"original"` // absolute path of the file that was backed up
-	CharID   string `json:"charId"`
+	Kind     string `json:"kind"`     // char | user ("" in old manifests = char)
+	CharID   string `json:"charId"`   // character id (char entries)
+	UserID   string `json:"userId"`   // account id (user entries)
 	Name     string `json:"name"`
 	Size     int64  `json:"size"`
 }
@@ -73,12 +77,21 @@ type ApplyRequest struct {
 	ProfileDir string   `json:"profileDir"`
 	SourceID   string   `json:"sourceId"`
 	TargetIDs  []string `json:"targetIds"`
+	CopyUser   bool     `json:"copyUser"` // also copy the source account's core_user (planned by the caller)
+}
+
+// UserCopy is the account part of an apply: core_user_<Source> over each core_user_<Targets>.
+// Targets equal to Source are skipped, duplicates collapse to one write.
+type UserCopy struct {
+	Source  string
+	Targets []string
 }
 
 type ApplyResult struct {
-	Backup  string   `json:"backup"`
-	Updated []string `json:"updated"`
-	Taken   string   `json:"taken"`
+	Backup   string   `json:"backup"`
+	Updated  []string `json:"updated"`  // character ids written
+	Accounts []string `json:"accounts"` // account ids written
+	Taken    string   `json:"taken"`
 }
 
 func (m *Manager) now() time.Time {
@@ -106,8 +119,9 @@ func validProfileDir(dir string) bool {
 	return filepath.IsAbs(dir) && strings.HasPrefix(filepath.Base(dir), profileDirName)
 }
 
-// Apply backs up every target core_char file and then replaces each one with the source file.
-func (m *Manager) Apply(req ApplyRequest) (*ApplyResult, error) {
+// Apply backs up every target core_char file (and core_user file, when users is set) and then
+// replaces each one with the source file. Everything is validated before the first write.
+func (m *Manager) Apply(req ApplyRequest, users *UserCopy) (*ApplyResult, error) {
 	if err := m.checkRunning(); err != nil {
 		return nil, err
 	}
@@ -141,11 +155,40 @@ func (m *Manager) Apply(req ApplyRequest) (*ApplyResult, error) {
 	if len(targets) == 0 {
 		return nil, ErrBadRequest
 	}
-	zipName, err := m.write("apply", req.SourceID, dir, targets)
+	if req.CopyUser != (users != nil) {
+		return nil, ErrBadRequest
+	}
+	var userSrc string
+	var userTargets []string
+	if users != nil {
+		userSrc = filepath.Join(dir, "core_user_"+users.Source+".dat")
+		if !userNameRe.MatchString(filepath.Base(userSrc)) {
+			return nil, ErrBadRequest
+		}
+		if st, err := os.Stat(userSrc); err != nil || !st.Mode().IsRegular() {
+			return nil, fmt.Errorf("%w: source account file missing", ErrBadRequest)
+		}
+		seenU := map[string]bool{users.Source: true}
+		for _, id := range users.Targets {
+			if seenU[id] {
+				continue
+			}
+			seenU[id] = true
+			p := filepath.Join(dir, "core_user_"+id+".dat")
+			if !userNameRe.MatchString(filepath.Base(p)) {
+				return nil, ErrBadRequest
+			}
+			if st, err := os.Stat(p); err != nil || !st.Mode().IsRegular() {
+				return nil, fmt.Errorf("%w: account %s missing", ErrBadRequest, id)
+			}
+			userTargets = append(userTargets, p)
+		}
+	}
+	zipName, err := m.write("apply", req.SourceID, dir, append(append([]string{}, targets...), userTargets...))
 	if err != nil {
 		return nil, err
 	}
-	res := &ApplyResult{Backup: zipName, Taken: m.now().UTC().Format(time.RFC3339)}
+	res := &ApplyResult{Backup: zipName, Taken: m.now().UTC().Format(time.RFC3339), Updated: []string{}, Accounts: []string{}}
 	for _, t := range targets {
 		if err := copyAtomic(srcPath, t); err != nil {
 			return res, fmt.Errorf("copy to %s: %w", filepath.Base(t), err)
@@ -153,8 +196,30 @@ func (m *Manager) Apply(req ApplyRequest) (*ApplyResult, error) {
 		id, _ := charID(t)
 		res.Updated = append(res.Updated, id)
 	}
+	for _, t := range userTargets {
+		if err := copyAtomic(userSrc, t); err != nil {
+			return res, fmt.Errorf("copy to %s: %w", filepath.Base(t), err)
+		}
+		id, _ := charID(t)
+		res.Accounts = append(res.Accounts, id)
+	}
 	m.prune()
 	return res, nil
+}
+
+// WriteTimes returns when the app wrote into profileDir (stored applies and restores).
+func (m *Manager) WriteTimes(profileDir string) []time.Time {
+	dir := filepath.Clean(profileDir)
+	var out []time.Time
+	for _, b := range m.List() {
+		if filepath.Clean(b.ProfileDir) != dir {
+			continue
+		}
+		if t, err := time.Parse(time.RFC3339, b.Taken); err == nil {
+			out = append(out, t)
+		}
+	}
+	return out
 }
 
 // Restore puts the files of a backup back. The current files are backed up first.
@@ -186,17 +251,23 @@ func (m *Manager) Restore(zipName string) (*ApplyResult, error) {
 			current = append(current, o)
 		}
 	}
-	res := &ApplyResult{Taken: m.now().UTC().Format(time.RFC3339)}
+	res := &ApplyResult{Taken: m.now().UTC().Format(time.RFC3339), Updated: []string{}, Accounts: []string{}}
 	if len(current) > 0 {
 		if res.Backup, err = m.write("restore", "", dir, current); err != nil {
 			return nil, err
 		}
 	}
 	for _, e := range mf.Files {
-		if err := extractAtomic(byName[e.Zip], filepath.Clean(e.Original)); err != nil {
+		o := filepath.Clean(e.Original)
+		if err := extractAtomic(byName[e.Zip], o); err != nil {
 			return res, err
 		}
-		res.Updated = append(res.Updated, e.CharID)
+		id, _ := charID(o)
+		if userNameRe.MatchString(filepath.Base(o)) {
+			res.Accounts = append(res.Accounts, id)
+		} else {
+			res.Updated = append(res.Updated, id)
+		}
 	}
 	m.prune()
 	return res, nil
@@ -216,6 +287,11 @@ func (m *Manager) List() []Info {
 		var size int64
 		if st != nil {
 			size = st.Size()
+		}
+		for j := range mf.Files {
+			if mf.Files[j].Kind == "" {
+				mf.Files[j].Kind = "char"
+			}
 		}
 		out = append(out, Info{Name: names[i], Taken: mf.CreatedAt, Kind: mf.Kind, SourceName: mf.SourceName,
 			Profile: mf.Profile, ProfileDir: mf.ProfileDir, Size: size, Files: mf.Files})
@@ -311,6 +387,12 @@ func (m *Manager) write(kind, sourceID, profileDir string, files []string) (stri
 			return "", err
 		}
 		id, _ := charID(f)
+		e := Entry{Kind: "char", CharID: id, Original: f, Size: st.Size()}
+		if userNameRe.MatchString(filepath.Base(f)) {
+			e = Entry{Kind: "user", UserID: id, Original: f, Size: st.Size()}
+		} else {
+			e.Name = m.name(id)
+		}
 		entry := fmt.Sprintf("files/%03d_%s", i+1, filepath.Base(f))
 		w, err := zw.Create(entry)
 		if err != nil {
@@ -325,7 +407,8 @@ func (m *Manager) write(kind, sourceID, profileDir string, files []string) (stri
 		if err != nil {
 			return "", err
 		}
-		mf.Files = append(mf.Files, Entry{Zip: entry, Original: f, CharID: id, Name: m.name(id), Size: st.Size()})
+		e.Zip = entry
+		mf.Files = append(mf.Files, e)
 	}
 	w, err := zw.Create("manifest.json")
 	if err != nil {

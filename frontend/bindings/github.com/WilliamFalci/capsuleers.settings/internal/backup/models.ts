@@ -10,6 +10,11 @@ export class ApplyRequest {
     "sourceId": string;
     "targetIds": string[];
 
+    /**
+     * also copy the source account's core_user (planned by the caller)
+     */
+    "copyUser": boolean;
+
     /** Creates a new ApplyRequest instance. */
     constructor($$source: Partial<ApplyRequest> = {}) {
         if (!("profileDir" in $$source)) {
@@ -20,6 +25,9 @@ export class ApplyRequest {
         }
         if (!("targetIds" in $$source)) {
             this["targetIds"] = [];
+        }
+        if (!("copyUser" in $$source)) {
+            this["copyUser"] = false;
         }
 
         Object.assign(this, $$source);
@@ -48,7 +56,21 @@ export class Entry {
      * absolute path of the file that was backed up
      */
     "original": string;
+
+    /**
+     * char | user ("" in old manifests = char)
+     */
+    "kind": string;
+
+    /**
+     * character id (char entries)
+     */
     "charId": string;
+
+    /**
+     * account id (user entries)
+     */
+    "userId": string;
     "name": string;
     "size": number;
 
@@ -60,8 +82,14 @@ export class Entry {
         if (!("original" in $$source)) {
             this["original"] = "";
         }
+        if (!("kind" in $$source)) {
+            this["kind"] = "";
+        }
         if (!("charId" in $$source)) {
             this["charId"] = "";
+        }
+        if (!("userId" in $$source)) {
+            this["userId"] = "";
         }
         if (!("name" in $$source)) {
             this["name"] = "";

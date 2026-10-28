@@ -177,10 +177,13 @@ func TestLabels(t *testing.T) {
 		members        []string
 	}{
 		{"overview", "en", "Overview", nil},
-		{"overview", "it", "Panoramica", nil},
+		{"overview", "it", "Overview", nil},
+		{"watchlistpanel", "it", "Watch List", nil},
+		{"overview_3", "it", "Overview 3", nil},
 		{"droneview", "en", "Drones", nil},
 		{"overview_2", "en", "Overview 2", nil},
-		{"chatchannel_local", "it", "Locale", nil},
+		{"chatchannel_local", "it", "Local", nil},
+		{"chatchannel_private_zzz", "it", "Canale privato", nil},
 		{"chatchannel_player_abc123", "en", "Test Channel", nil},
 		{"chatchannel_private_zzz", "en", "Private channel", nil},
 		{"65", "en", "Local · Corp", []string{"Local", "Corp"}},
@@ -191,40 +194,6 @@ func TestLabels(t *testing.T) {
 		if got := cs.WindowLabel(c.id, c.lang, ch, c.members); got != c.want {
 			t.Errorf("%s/%s: %q != %q", c.id, c.lang, got, c.want)
 		}
-	}
-}
-
-func TestDiff(t *testing.T) {
-	src, _ := cs.Parse(base().bytes(nil))
-	b := base()
-	b.pos["overview"] = win(1500, 170, 400, 620, 1920, 1080)        // moved
-	b.pos["selecteditemview"] = win(1480, 40, 420, 110, 1920, 1080) // same
-	delete(b.pos, "probeScannerWindow")                             // missing on target -> add
-	b.pos["fitting"] = win(960, 120, 460, 520, 1920, 1080)          // only on target -> remove
-	b.open = append(b.open, "fitting")
-	b.pos["ChatWindowStack"] = win(54*2133/1920, 700*1200/1080, 420*2133/1920, 360*1200/1080, 2133, 1200) // same fractions, other screen
-	tgt, _ := cs.Parse(b.bytes(nil))
-
-	got := map[string]string{}
-	for _, d := range cs.DiffWindows(src, tgt) {
-		got[d.ID] = d.Status
-	}
-	want := map[string]string{"overview": cs.Move, "selecteditemview": cs.Same, "probeScannerWindow": cs.Add, "fitting": cs.Remove, "ChatWindowStack": cs.Same}
-	for id, st := range want {
-		if got[id] != st {
-			t.Errorf("%s: %q != %q", id, got[id], st)
-		}
-	}
-
-	b.channels = []any{mt.T("local", "local_100", "Local"), mt.T("fleet", "fleet_1", "Fleet")}
-	b.open = []string{"chatchannel_local", "chatchannel_corp"}
-	tgt2, _ := cs.Parse(b.bytes(nil))
-	ch := map[string]string{}
-	for _, d := range cs.DiffChannels(src, tgt2) {
-		ch[d.Channel.ID] = d.Status
-	}
-	if ch["chatchannel_local"] != cs.Same || ch["chatchannel_player_abc123"] != cs.Add || ch["chatchannel_fleet"] != cs.Remove || ch["chatchannel_corp"] != cs.Same {
-		t.Fatalf("channels diff: %v", ch)
 	}
 }
 
@@ -300,4 +269,30 @@ func TestRealCorpus(t *testing.T) {
 		return nil
 	})
 	t.Logf("parsed %d files, %d with a window layout", n, withWindows)
+}
+
+func TestWindowCategory(t *testing.T) {
+	cases := []struct {
+		id      string
+		members []string
+		want    string
+	}{
+		{"overview", nil, "combat"}, {"overview_3", nil, "combat"}, {"droneview", nil, "combat"},
+		{"directionalScannerWindow", nil, "combat"}, {"directionalScannerFoo", nil, "combat"}, {"probeScannerWindow", nil, "combat"},
+		{"chatchannel_local", nil, "chat"}, {"ChatWindowStack", nil, "chat"}, {"invitestack", nil, "chat"},
+		{"fleetwindow", nil, "fleet"}, {"watchlistpanel", nil, "fleet"}, {"StoreFleetSetupWnd", nil, "other"},
+		{"inventory", nil, "ship"}, {"ActiveShipCargo", nil, "ship"}, {"corpHangarWnd", nil, "ship"}, {"fittingWnd", nil, "ship"},
+		{"marketbuyaction", nil, "market"}, {"SellItemsWindow", nil, "market"}, {"walletWindow", nil, "market"}, {"MyMarketOrders", nil, "market"},
+		{"('myPlaces', 1)", nil, "navigation"}, {"primary_map_panel", nil, "navigation"}, {"starMapFoo", nil, "navigation"},
+		{"mail", nil, "other"}, {"telecom", nil, "other"}, {"neocom", nil, "other"}, {"lobbyWnd", nil, "other"},
+		{"SkillPlanner", nil, "other"}, {"careerPortal", nil, "other"}, {"TaskConversationWindow", nil, "other"},
+		{"FriendsList", nil, "other"}, {"65", nil, "other"},
+		{"65", []string{"mail", "chatchannel_corp", "overview"}, "chat"},
+		{"65", []string{"mail", "telecom"}, "other"},
+	}
+	for _, c := range cases {
+		if got := cs.WindowCategory(c.id, c.members); got != c.want {
+			t.Errorf("%s %v: %q != %q", c.id, c.members, got, c.want)
+		}
+	}
 }

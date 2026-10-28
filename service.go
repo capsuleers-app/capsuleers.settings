@@ -7,8 +7,10 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/WilliamFalci/capsuleers.settings/internal/accounts"
 	"github.com/WilliamFalci/capsuleers.settings/internal/backup"
 	"github.com/WilliamFalci/capsuleers.settings/internal/config"
 	"github.com/WilliamFalci/capsuleers.settings/internal/esi"
@@ -21,6 +23,8 @@ type Service struct {
 	cfg     *config.Store
 	names   *esi.Resolver
 	backups *backup.Manager
+	mu      sync.Mutex // serializes account evidence/config writes
+	ident   *identSession
 }
 
 func NewService() (*Service, error) {
@@ -84,21 +88,25 @@ func (s *Service) ResolveNames(ids []string) map[string]string {
 
 // Result is the outcome of Apply and Restore; Code is machine readable when OK is false.
 type Result struct {
-	OK      bool     `json:"ok"`
-	Code    string   `json:"code"`
-	Message string   `json:"message"`
-	Backup  string   `json:"backup"`
-	Updated []string `json:"updated"`
-	Taken   string   `json:"taken"`
+	OK       bool     `json:"ok"`
+	Code     string   `json:"code"`
+	Message  string   `json:"message"`
+	Backup   string   `json:"backup"`
+	Updated  []string `json:"updated"`
+	Accounts []string `json:"accounts"`
+	Taken    string   `json:"taken"`
 }
 
 func result(r *backup.ApplyResult, err error) Result {
 	out := Result{}
 	if r != nil {
-		out.Backup, out.Updated, out.Taken = r.Backup, r.Updated, r.Taken
+		out.Backup, out.Updated, out.Accounts, out.Taken = r.Backup, r.Updated, r.Accounts, r.Taken
 	}
 	if out.Updated == nil {
 		out.Updated = []string{}
+	}
+	if out.Accounts == nil {
+		out.Accounts = []string{}
 	}
 	switch {
 	case err == nil:
@@ -115,8 +123,157 @@ func result(r *backup.ApplyResult, err error) Result {
 	return out
 }
 
-// Apply backs up the targets and copies the source character file over each of them.
-func (s *Service) Apply(req backup.ApplyRequest) Result { return result(s.backups.Apply(req)) }
+// Apply backs up the targets and copies the source character file over each of them. With
+// CopyUser it also copies the source account's core_user over the targets' accounts, planned
+// here from the stored/suggested links; any target without a known account refuses the apply.
+func (s *Service) Apply(req backup.ApplyRequest) Result {
+	if !req.CopyUser {
+		return result(s.backups.Apply(req, nil))
+	}
+	plan := s.AccountPlan(req)
+	if !plan.Ready() {
+		return Result{Code: "unknown_account", Updated: []string{}, Accounts: []string{}}
+	}
+	return result(s.backups.Apply(req, &backup.UserCopy{Source: plan.SourceUser, Targets: plan.Targets()}))
+}
+
+// AccountRow is the account of one character. UserID "" = unknown; Source is where the
+// link comes from (launcher, launcher-esi, guided, portrait, rift).
+type AccountRow struct {
+	CharID string `json:"charId"`
+	UserID string `json:"userId"`
+	Source string `json:"source"`
+}
+
+// AccountsResult lists the profile's account files and each character's account.
+type AccountsResult struct {
+	Users []string `json:"users"`
+	// Aliases: account id -> name chosen by the user (absent = none).
+	Aliases map[string]string `json:"aliases"`
+	Chars   []AccountRow      `json:"chars"`
+}
+
+// effective resolves the account of each character of a profile from certain evidence only:
+// guided identifications and launcher logs (newest wins), strictly paired esi lines, then the
+// profile files themselves. Links read from the launcher logs are stored in the config so they
+// survive log rotation. EVE files are only read.
+func (s *Service) effective(profileDir string) (map[string]accounts.Link, eve.Profile) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	p := eve.ScanProfile(profileDir)
+	users, chars := map[string]bool{}, map[string]bool{}
+	for _, u := range p.Users {
+		users[u.ID] = true
+	}
+	for _, c := range p.Chars {
+		chars[c.ID] = true
+	}
+	now := time.Now()
+	var ev, learned []accounts.Evidence
+	for c, u := range s.cfg.AccountLinks(profileDir) { // legacy hand confirmations, undated
+		if u != "" {
+			ev = append(ev, accounts.Evidence{CharID: c, UserID: u, Source: accounts.SourceGuided})
+		}
+	}
+	for c, l := range s.cfg.AccountGuided(profileDir) {
+		ev = append(ev, accounts.Evidence{CharID: c, UserID: l.UserID, Source: accounts.SourceGuided, At: l.At})
+	}
+	for c, l := range s.cfg.AccountLearned(profileDir) {
+		learned = append(learned, accounts.Evidence{CharID: c, UserID: l.UserID, Source: l.Source, At: l.At})
+	}
+	for _, e := range accounts.ScanLauncherLogs(profileDir) {
+		if e.At.After(now) {
+			e.At = now
+		}
+		learned = append(learned, e)
+	}
+	// persist what the logs taught (only changes are written)
+	stored := s.cfg.AccountLearned(profileDir)
+	next := map[string]config.Link{}
+	for c, l := range accounts.Resolve(learned, nil, chars) {
+		next[c] = config.Link{UserID: l.UserID, At: l.At, Source: l.Source}
+	}
+	if !sameLinks(stored, next) {
+		_ = s.cfg.SetAccountLearned(profileDir, next)
+	}
+	ev = append(ev, learned...)
+	for _, sg := range accounts.Suggest(profileDir) {
+		ev = append(ev, accounts.Evidence{CharID: sg.CharID, UserID: sg.UserID, Source: sg.Reason})
+	}
+	return accounts.Resolve(ev, users, chars), p
+}
+
+func sameLinks(a, b map[string]config.Link) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for c, l := range a {
+		if m, ok := b[c]; !ok || m.UserID != l.UserID || m.Source != l.Source || !m.At.Equal(l.At) {
+			return false
+		}
+	}
+	return true
+}
+
+// Accounts returns the character -> account mapping of a profile.
+func (s *Service) Accounts(profileDir string) AccountsResult {
+	links, p := s.effective(profileDir)
+	out := AccountsResult{Users: []string{}, Chars: []AccountRow{}, Aliases: map[string]string{}}
+	for u, a := range s.cfg.AccountAliases(profileDir) {
+		out.Aliases[u] = a
+	}
+	for _, u := range p.Users {
+		out.Users = append(out.Users, u.ID)
+	}
+	for _, c := range p.Chars {
+		row := AccountRow{CharID: c.ID}
+		if l, ok := links[c.ID]; ok {
+			row.UserID, row.Source = l.UserID, l.Source
+		}
+		out.Chars = append(out.Chars, row)
+	}
+	return out
+}
+
+// SetAccountAlias names an account of the profile ("" removes the name). App config only.
+func (s *Service) SetAccountAlias(profileDir, userID, alias string) error {
+	for _, u := range eve.ScanProfile(profileDir).Users {
+		if u.ID == userID {
+			return s.cfg.SetAccountAlias(profileDir, userID, alias)
+		}
+	}
+	return errors.New("unknown account")
+}
+
+// SetLastSource remembers the source picked in a profile, restored by LastSource at startup.
+func (s *Service) SetLastSource(profileDir, charID string) error {
+	for _, c := range eve.ScanProfile(profileDir).Chars {
+		if c.ID == charID {
+			return s.cfg.SetSource(profileDir, charID)
+		}
+	}
+	return errors.New("unknown character")
+}
+
+// LastSource returns the remembered source of a profile, "" when none or no longer present.
+func (s *Service) LastSource(profileDir string) string {
+	id := s.cfg.Source(profileDir)
+	for _, c := range eve.ScanProfile(profileDir).Chars {
+		if c.ID == id {
+			return id
+		}
+	}
+	return ""
+}
+
+// AccountPlan shows which account files copying the source's core_user would overwrite.
+func (s *Service) AccountPlan(req backup.ApplyRequest) accounts.Plan {
+	acct := map[string]string{}
+	for _, r := range s.Accounts(req.ProfileDir).Chars {
+		acct[r.CharID] = r.UserID
+	}
+	return accounts.MakePlan(req.SourceID, req.TargetIDs, acct)
+}
 
 func (s *Service) Backups() []backup.Info { return s.backups.List() }
 

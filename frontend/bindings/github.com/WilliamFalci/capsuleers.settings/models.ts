@@ -10,6 +10,171 @@ import { Create as $Create } from "@wailsio/runtime";
 import * as charsettings$0 from "./internal/charsettings/models.js";
 
 /**
+ * AccountRow is the account of one character. UserID "" = unknown; Source is where the
+ * link comes from (launcher, launcher-esi, guided, portrait, rift).
+ */
+export class AccountRow {
+    "charId": string;
+    "userId": string;
+    "source": string;
+
+    /** Creates a new AccountRow instance. */
+    constructor($$source: Partial<AccountRow> = {}) {
+        if (!("charId" in $$source)) {
+            this["charId"] = "";
+        }
+        if (!("userId" in $$source)) {
+            this["userId"] = "";
+        }
+        if (!("source" in $$source)) {
+            this["source"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AccountRow instance from a string or object.
+     */
+    static createFrom($$source: any = {}): AccountRow {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new AccountRow($$parsedSource as Partial<AccountRow>);
+    }
+}
+
+/**
+ * AccountsResult lists the profile's account files and each character's account.
+ */
+export class AccountsResult {
+    "users": string[];
+
+    /**
+     * Aliases: account id -> name chosen by the user (absent = none).
+     */
+    "aliases": { [_ in string]?: string };
+    "chars": AccountRow[];
+
+    /** Creates a new AccountsResult instance. */
+    constructor($$source: Partial<AccountsResult> = {}) {
+        if (!("users" in $$source)) {
+            this["users"] = [];
+        }
+        if (!("aliases" in $$source)) {
+            this["aliases"] = {};
+        }
+        if (!("chars" in $$source)) {
+            this["chars"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AccountsResult instance from a string or object.
+     */
+    static createFrom($$source: any = {}): AccountsResult {
+        const $$createField0_0 = $$createType0;
+        const $$createField1_0 = $$createType1;
+        const $$createField2_0 = $$createType3;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("users" in $$parsedSource) {
+            $$parsedSource["users"] = $$createField0_0($$parsedSource["users"]);
+        }
+        if ("aliases" in $$parsedSource) {
+            $$parsedSource["aliases"] = $$createField1_0($$parsedSource["aliases"]);
+        }
+        if ("chars" in $$parsedSource) {
+            $$parsedSource["chars"] = $$createField2_0($$parsedSource["chars"]);
+        }
+        return new AccountsResult($$parsedSource as Partial<AccountsResult>);
+    }
+}
+
+/**
+ * IdentFound is a character identified by the guided procedure.
+ */
+export class IdentFound {
+    "charId": string;
+    "userId": string;
+
+    /**
+     * differs from the account saved before
+     */
+    "remapped": boolean;
+
+    /** Creates a new IdentFound instance. */
+    constructor($$source: Partial<IdentFound> = {}) {
+        if (!("charId" in $$source)) {
+            this["charId"] = "";
+        }
+        if (!("userId" in $$source)) {
+            this["userId"] = "";
+        }
+        if (!("remapped" in $$source)) {
+            this["remapped"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new IdentFound instance from a string or object.
+     */
+    static createFrom($$source: any = {}): IdentFound {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new IdentFound($$parsedSource as Partial<IdentFound>);
+    }
+}
+
+/**
+ * IdentifyState is polled by the frontend while the identification panel is open.
+ */
+export class IdentifyState {
+    "active": boolean;
+
+    /**
+     * grows each time a mapping was saved
+     */
+    "seq": number;
+
+    /**
+     * batches discarded because several accounts changed
+     */
+    "ambiguous": number;
+    "found": IdentFound[];
+
+    /** Creates a new IdentifyState instance. */
+    constructor($$source: Partial<IdentifyState> = {}) {
+        if (!("active" in $$source)) {
+            this["active"] = false;
+        }
+        if (!("seq" in $$source)) {
+            this["seq"] = 0;
+        }
+        if (!("ambiguous" in $$source)) {
+            this["ambiguous"] = 0;
+        }
+        if (!("found" in $$source)) {
+            this["found"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new IdentifyState instance from a string or object.
+     */
+    static createFrom($$source: any = {}): IdentifyState {
+        const $$createField3_0 = $$createType5;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("found" in $$parsedSource) {
+            $$parsedSource["found"] = $$createField3_0($$parsedSource["found"]);
+        }
+        return new IdentifyState($$parsedSource as Partial<IdentifyState>);
+    }
+}
+
+/**
  * Meta is static app info for the footer.
  */
 export class Meta {
@@ -38,13 +203,12 @@ export class Meta {
 }
 
 /**
- * PreviewChannel is a chat channel; Status is same, add, remove, or empty without a target.
+ * PreviewChannel is a chat channel.
  */
 export class PreviewChannel {
     "id": string;
     "kind": string;
     "label": string;
-    "status": string;
 
     /** Creates a new PreviewChannel instance. */
     constructor($$source: Partial<PreviewChannel> = {}) {
@@ -56,9 +220,6 @@ export class PreviewChannel {
         }
         if (!("label" in $$source)) {
             this["label"] = "";
-        }
-        if (!("status" in $$source)) {
-            this["status"] = "";
         }
 
         Object.assign(this, $$source);
@@ -74,64 +235,14 @@ export class PreviewChannel {
 }
 
 /**
- * PreviewItem pairs a window in the source with the same id in the target. Status is
- * same, move, add (only in source) or remove (only in target); empty without a target.
- */
-export class PreviewItem {
-    "id": string;
-    "label": string;
-    "status": string;
-    "source": PreviewWindow | null;
-    "target": PreviewWindow | null;
-
-    /** Creates a new PreviewItem instance. */
-    constructor($$source: Partial<PreviewItem> = {}) {
-        if (!("id" in $$source)) {
-            this["id"] = "";
-        }
-        if (!("label" in $$source)) {
-            this["label"] = "";
-        }
-        if (!("status" in $$source)) {
-            this["status"] = "";
-        }
-        if (!("source" in $$source)) {
-            this["source"] = null;
-        }
-        if (!("target" in $$source)) {
-            this["target"] = null;
-        }
-
-        Object.assign(this, $$source);
-    }
-
-    /**
-     * Creates a new PreviewItem instance from a string or object.
-     */
-    static createFrom($$source: any = {}): PreviewItem {
-        const $$createField3_0 = $$createType1;
-        const $$createField4_0 = $$createType1;
-        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("source" in $$parsedSource) {
-            $$parsedSource["source"] = $$createField3_0($$parsedSource["source"]);
-        }
-        if ("target" in $$parsedSource) {
-            $$parsedSource["target"] = $$createField4_0($$parsedSource["target"]);
-        }
-        return new PreviewItem($$parsedSource as Partial<PreviewItem>);
-    }
-}
-
-/**
  * PreviewResult is what the Preview view shows. Code is "bad_request" when the ids or folder are not valid.
  */
 export class PreviewResult {
     "ok": boolean;
     "code": string;
     "source": PreviewSide;
-    "target": PreviewSide | null;
     "display": charsettings$0.Display;
-    "items": PreviewItem[];
+    "windows": PreviewWindow[];
     "channels": PreviewChannel[];
 
     /** Creates a new PreviewResult instance. */
@@ -145,14 +256,11 @@ export class PreviewResult {
         if (!("source" in $$source)) {
             this["source"] = (new PreviewSide());
         }
-        if (!("target" in $$source)) {
-            this["target"] = null;
-        }
         if (!("display" in $$source)) {
             this["display"] = (new charsettings$0.Display());
         }
-        if (!("items" in $$source)) {
-            this["items"] = [];
+        if (!("windows" in $$source)) {
+            this["windows"] = [];
         }
         if (!("channels" in $$source)) {
             this["channels"] = [];
@@ -165,33 +273,29 @@ export class PreviewResult {
      * Creates a new PreviewResult instance from a string or object.
      */
     static createFrom($$source: any = {}): PreviewResult {
-        const $$createField2_0 = $$createType2;
-        const $$createField3_0 = $$createType3;
-        const $$createField4_0 = $$createType4;
-        const $$createField5_0 = $$createType6;
-        const $$createField6_0 = $$createType8;
+        const $$createField2_0 = $$createType6;
+        const $$createField3_0 = $$createType7;
+        const $$createField4_0 = $$createType9;
+        const $$createField5_0 = $$createType11;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("source" in $$parsedSource) {
             $$parsedSource["source"] = $$createField2_0($$parsedSource["source"]);
         }
-        if ("target" in $$parsedSource) {
-            $$parsedSource["target"] = $$createField3_0($$parsedSource["target"]);
-        }
         if ("display" in $$parsedSource) {
-            $$parsedSource["display"] = $$createField4_0($$parsedSource["display"]);
+            $$parsedSource["display"] = $$createField3_0($$parsedSource["display"]);
         }
-        if ("items" in $$parsedSource) {
-            $$parsedSource["items"] = $$createField5_0($$parsedSource["items"]);
+        if ("windows" in $$parsedSource) {
+            $$parsedSource["windows"] = $$createField4_0($$parsedSource["windows"]);
         }
         if ("channels" in $$parsedSource) {
-            $$parsedSource["channels"] = $$createField6_0($$parsedSource["channels"]);
+            $$parsedSource["channels"] = $$createField5_0($$parsedSource["channels"]);
         }
         return new PreviewResult($$parsedSource as Partial<PreviewResult>);
     }
 }
 
 /**
- * PreviewSide describes one file. Error is "", "missing" or "unreadable".
+ * PreviewSide describes the source file. Error is "", "missing" or "unreadable".
  */
 export class PreviewSide {
     "charId": string;
@@ -249,7 +353,7 @@ export class PreviewSide {
      * Creates a new PreviewSide instance from a string or object.
      */
     static createFrom($$source: any = {}): PreviewSide {
-        const $$createField9_0 = $$createType10;
+        const $$createField9_0 = $$createType13;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("keys" in $$parsedSource) {
             $$parsedSource["keys"] = $$createField9_0($$parsedSource["keys"]);
@@ -270,6 +374,7 @@ export class PreviewWindow {
     "height": number;
     "screenW": number;
     "screenH": number;
+    "category": string;
 
     /**
      * labels of the windows stacked here
@@ -306,6 +411,9 @@ export class PreviewWindow {
         if (!("screenH" in $$source)) {
             this["screenH"] = 0;
         }
+        if (!("category" in $$source)) {
+            this["category"] = "";
+        }
         if (!("members" in $$source)) {
             this["members"] = [];
         }
@@ -329,10 +437,10 @@ export class PreviewWindow {
      * Creates a new PreviewWindow instance from a string or object.
      */
     static createFrom($$source: any = {}): PreviewWindow {
-        const $$createField8_0 = $$createType11;
+        const $$createField9_0 = $$createType0;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("members" in $$parsedSource) {
-            $$parsedSource["members"] = $$createField8_0($$parsedSource["members"]);
+            $$parsedSource["members"] = $$createField9_0($$parsedSource["members"]);
         }
         return new PreviewWindow($$parsedSource as Partial<PreviewWindow>);
     }
@@ -347,6 +455,7 @@ export class Result {
     "message": string;
     "backup": string;
     "updated": string[];
+    "accounts": string[];
     "taken": string;
 
     /** Creates a new Result instance. */
@@ -366,6 +475,9 @@ export class Result {
         if (!("updated" in $$source)) {
             this["updated"] = [];
         }
+        if (!("accounts" in $$source)) {
+            this["accounts"] = [];
+        }
         if (!("taken" in $$source)) {
             this["taken"] = "";
         }
@@ -377,25 +489,31 @@ export class Result {
      * Creates a new Result instance from a string or object.
      */
     static createFrom($$source: any = {}): Result {
-        const $$createField4_0 = $$createType11;
+        const $$createField4_0 = $$createType0;
+        const $$createField5_0 = $$createType0;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("updated" in $$parsedSource) {
             $$parsedSource["updated"] = $$createField4_0($$parsedSource["updated"]);
+        }
+        if ("accounts" in $$parsedSource) {
+            $$parsedSource["accounts"] = $$createField5_0($$parsedSource["accounts"]);
         }
         return new Result($$parsedSource as Partial<Result>);
     }
 }
 
 // Private type creation functions
-const $$createType0 = PreviewWindow.createFrom;
-const $$createType1 = $Create.Nullable($$createType0);
-const $$createType2 = PreviewSide.createFrom;
-const $$createType3 = $Create.Nullable($$createType2);
-const $$createType4 = charsettings$0.Display.createFrom;
-const $$createType5 = PreviewItem.createFrom;
-const $$createType6 = $Create.Array($$createType5);
-const $$createType7 = PreviewChannel.createFrom;
-const $$createType8 = $Create.Array($$createType7);
-const $$createType9 = charsettings$0.Key.createFrom;
-const $$createType10 = $Create.Array($$createType9);
-const $$createType11 = $Create.Array($Create.Any);
+const $$createType0 = $Create.Array($Create.Any);
+const $$createType1 = $Create.Map($Create.Any, $Create.Any);
+const $$createType2 = AccountRow.createFrom;
+const $$createType3 = $Create.Array($$createType2);
+const $$createType4 = IdentFound.createFrom;
+const $$createType5 = $Create.Array($$createType4);
+const $$createType6 = PreviewSide.createFrom;
+const $$createType7 = charsettings$0.Display.createFrom;
+const $$createType8 = PreviewWindow.createFrom;
+const $$createType9 = $Create.Array($$createType8);
+const $$createType10 = PreviewChannel.createFrom;
+const $$createType11 = $Create.Array($$createType10);
+const $$createType12 = charsettings$0.Key.createFrom;
+const $$createType13 = $Create.Array($$createType12);

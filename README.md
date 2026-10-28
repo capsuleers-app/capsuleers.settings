@@ -8,7 +8,8 @@ to many, safely. Part of the [Capsuleers](https://capsuleers.app) family. Unoffi
 - Every target is zipped to a backup first; copies are atomic; restore any of the last 20 backups.
 - Refuses to write while an EVE client is running (it would overwrite your change on exit).
 - Character names from ESI (no login), cached; portraits from images.evetech.net. Works offline with IDs.
-- English and Italian from the system locale. Account settings (`core_user`) are planned, disabled for now.
+- Optional account settings (`core_user`: overview, shortcuts, UI preferences). EVE keeps them per account, so characters are grouped by account. The link comes only from certain sources: the EVE launcher logs, files the client wrote, or IDENTIFY (log characters in and out; the app watches the file times, read-only). Characters with no certain account stay under "To identify" and are refused for account copy. Each account file is written once and backed up like the rest.
+- English and Italian from the system locale.
 
 Nothing is written until you press Apply, and never outside the chosen `settings_*` folder.
 

@@ -7,9 +7,12 @@ export {
 };
 
 export {
+    AccountRow,
+    AccountsResult,
+    IdentFound,
+    IdentifyState,
     Meta,
     PreviewChannel,
-    PreviewItem,
     PreviewResult,
     PreviewSide,
     PreviewWindow,
