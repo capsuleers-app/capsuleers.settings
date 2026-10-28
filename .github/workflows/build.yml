@@ -1,0 +1,125 @@
+# Build, test AND auto-release capsuleers.settings on every push/merge to `main`.
+#
+# Each push to main builds the Linux binary + Windows .exe on their native
+# runners and publishes them to a GitHub Release. To get a distinct,
+# monotonically-increasing version per release WITHOUT committing a version bump
+# back to the repo (which would re-trigger the workflow), the release version is
+# computed at build time as <major>.<minor>.<github run number> from
+# frontend/package.json and stamped into the binary with -ldflags -X.
+#
+# Same shape as capsuleers.intel's build.yml; Wails has no electron-builder, so
+# a final job collects both binaries and creates the Release with `gh`.
+name: build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            label: linux
+          - os: windows-latest
+            label: windows
+    runs-on: ${{ matrix.os }}
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      # GTK3 + WebKitGTK 4.1 headers for the cgo Linux build (Wails v3 defaults to GTK4: we build -tags gtk3).
+      - name: Install Linux build deps
+        if: matrix.label == 'linux'
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
+
+      # Keep the package.json major.minor, use the workflow run number as the
+      # patch. Every matrix job in the same run gets the SAME value, so both OSes
+      # land in one release. Not committed (no loop).
+      - name: Set release version
+        id: ver
+        shell: bash
+        run: |
+          base=$(node -p "require('./frontend/package.json').version")
+          ver="$(echo "$base" | cut -d. -f1,2).${{ github.run_number }}"
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+          echo "Releasing v$ver"
+
+      # Vue + Vite -> frontend/dist, embedded in the Go binary.
+      - name: Build frontend
+        working-directory: frontend
+        run: npm ci && npm run build
+
+      # Build gate: a red vet/test stops the release.
+      - name: Vet & test
+        if: matrix.label == 'linux'
+        run: go vet -tags gtk3 ./... && go test -tags gtk3 ./...
+
+      - name: Build Linux binary
+        if: matrix.label == 'linux'
+        run: |
+          go build -buildvcs=false -tags "gtk3 production" \
+            -ldflags "-s -w -X github.com/WilliamFalci/capsuleers.settings/internal/esi.AppVersion=${{ steps.ver.outputs.version }}" \
+            -o dist/capsuleers.settings-linux-amd64 .
+
+      - name: Build Windows binary
+        if: matrix.label == 'windows'
+        shell: bash
+        env:
+          CGO_ENABLED: "0"
+        run: |
+          go test ./internal/...
+          go build -buildvcs=false -tags production \
+            -ldflags "-s -w -H windowsgui -X github.com/WilliamFalci/capsuleers.settings/internal/esi.AppVersion=${{ steps.ver.outputs.version }}" \
+            -o dist/capsuleers.settings-windows-amd64.exe .
+
+      # Hand-off to the release job. `retention-days: 1` because this copy is
+      # REDUNDANT: the real delivery is the Release created below, which does
+      # not expire; this only lets us fish a binary out of a run that failed downstream.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: capsuleers-settings-${{ matrix.label }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 1
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # creates the Release + its tag
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+
+      # Tag v<version> is created against this commit on main.
+      - name: Publish GitHub Release
+        run: |
+          gh release create "v${{ needs.build.outputs.version }}" dist/* \
+            --repo "${{ github.repository }}" --target "${{ github.sha }}" \
+            --title "v${{ needs.build.outputs.version }}" --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

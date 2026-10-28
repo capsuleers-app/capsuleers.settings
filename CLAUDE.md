@@ -20,7 +20,8 @@ File creati nel container dal suo utente risultano illeggibili sull'host: `podma
 ## Vincoli
 - Mai scrivere senza Apply esplicito; mai fuori dalla cartella `settings_*` scelta; backup zip prima, poi copia atomica (temp + rename).
 - Apply e Restore rifiutano se il client gira (`eve.RunningCount`).
-- `User-Agent` e `X-Compatibility-Date` solo dalle costanti di `internal/esi/esi.go`.
+- `User-Agent` e `X-Compatibility-Date` solo da `internal/esi/esi.go`; la versione la imprime la CI (`-X ...esi.AppVersion`).
+- CI (`.github/workflows/build.yml`, come intel): ogni push su `main` = vet/test + build Linux/Windows + Release `v<major.minor>.<run>`. Dependabot in `.github/dependabot.yml`.
 - UI: design system Capsuleers.App (solo dark, radius 0, UN arancione `#fb923c`, hover piu' scuro, `bundle.css` verbatim). Font e asset locali, nessuna CDN; CSP in `frontend/index.html`.
 - Bilingue EN/IT dal locale di sistema (`frontend/src/i18n.ts`), nessuno switch.
 - Icone: non modificarle qui (vedi brand.md).

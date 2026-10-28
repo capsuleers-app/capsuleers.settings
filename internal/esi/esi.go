@@ -14,12 +14,16 @@ import (
 	"time"
 )
 
+// AppVersion is overridden at release time by CI:
+// -ldflags "-X github.com/WilliamFalci/capsuleers.settings/internal/esi.AppVersion=<ver>".
+var AppVersion = "0.1.0"
+
+// UserAgent is the only User-Agent this app ever sends.
+var UserAgent = AppName + "/" + AppVersion + " (+" + RepoURL + ")"
+
 const (
-	AppName    = "capsuleers.settings"
-	AppVersion = "0.1.0"
-	RepoURL    = "https://github.com/WilliamFalci/capsuleers.settings"
-	// UserAgent is the only User-Agent this app ever sends.
-	UserAgent = AppName + "/" + AppVersion + " (+" + RepoURL + ")"
+	AppName = "capsuleers.settings"
+	RepoURL = "https://github.com/WilliamFalci/capsuleers.settings"
 	// CompatibilityDate pins the ESI route set (the /latest/ alias hides modern routes).
 	CompatibilityDate = "2026-10-28"
 
