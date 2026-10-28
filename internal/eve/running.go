@@ -6,8 +6,9 @@ import (
 	"strings"
 )
 
-// CountProcCmdlines counts processes under a /proc-like root whose command line mentions
-// exefile.exe (the EVE client under Wine/Proton). skipPID is excluded.
+// CountProcCmdlines counts processes under a /proc-like root with an argument whose file name is
+// exefile.exe (the EVE client under Wine/Proton). A mere mention inside a longer argument (a shell
+// script, grep, an editor) does not count. skipPID is excluded.
 func CountProcCmdlines(procRoot string, skipPID int) int {
 	entries, err := os.ReadDir(procRoot)
 	if err != nil {
@@ -26,11 +27,24 @@ func CountProcCmdlines(procRoot string, skipPID int) int {
 		if err != nil {
 			continue
 		}
-		if strings.Contains(strings.ToLower(string(b)), "exefile.exe") {
+		if isClientCmdline(b) {
 			n++
 		}
 	}
 	return n
+}
+
+func isClientCmdline(b []byte) bool {
+	for _, arg := range strings.Split(string(b), "\x00") {
+		arg = strings.ToLower(strings.TrimSpace(arg))
+		if i := strings.LastIndexAny(arg, `/\`); i >= 0 {
+			arg = arg[i+1:]
+		}
+		if arg == "exefile.exe" {
+			return true
+		}
+	}
+	return false
 }
 
 func itoa(i int) string {

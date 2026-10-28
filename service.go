@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/WilliamFalci/capsuleers.settings/internal/backup"
@@ -105,7 +106,7 @@ func result(r *backup.ApplyResult, err error) Result {
 	case errors.Is(err, backup.ErrRunning):
 		out.Code = "client_running"
 	case errors.Is(err, backup.ErrBadRequest):
-		out.Code, out.Message = "bad_request", err.Error()
+		out.Code, out.Message = "bad_request", strings.TrimPrefix(strings.TrimPrefix(err.Error(), backup.ErrBadRequest.Error()), ": ")
 	case errors.Is(err, backup.ErrBadBackup):
 		out.Code = "bad_backup"
 	default:

@@ -11,6 +11,10 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
+// framelessFix is set on Linux/GTK3 builds: it removes the compositor title bar that Wayland
+// adds around a window GTK3 declared undecorated. It owns showing the window.
+var framelessFix func(*application.WebviewWindow)
+
 func main() {
 	svc, err := NewService()
 	if err != nil {
@@ -23,7 +27,7 @@ func main() {
 		Assets:      application.AssetOptions{Handler: application.AssetFileServerFS(assets)},
 		Mac:         application.MacOptions{ApplicationShouldTerminateAfterLastWindowClosed: true},
 	})
-	app.Window.NewWithOptions(application.WebviewWindowOptions{
+	win := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:            "CAPSULEERS.SETTINGS",
 		Width:            1240,
 		Height:           820,
@@ -32,7 +36,11 @@ func main() {
 		Frameless:        true,
 		BackgroundColour: application.NewRGB(0x14, 0x14, 0x17),
 		URL:              "/",
+		Hidden:           framelessFix != nil,
 	})
+	if framelessFix != nil {
+		framelessFix(win)
+	}
 	if err := app.Run(); err != nil {
 		log.Fatal(err)
 	}

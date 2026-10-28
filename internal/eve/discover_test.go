@@ -81,10 +81,14 @@ func TestCountProcCmdlines(t *testing.T) {
 	write(t, filepath.Join(proc, "100", "cmdline"), "Z:\\steam\\EVE\\bin64\\ExeFile.exe\x00")
 	write(t, filepath.Join(proc, "101", "cmdline"), "firefox\x00")
 	write(t, filepath.Join(proc, "self", "cmdline"), "exefile.exe")
-	if n := CountProcCmdlines(proc, 0); n != 1 {
+	// mentions of the name inside a longer argument are not the client
+	write(t, filepath.Join(proc, "200", "cmdline"), "/bin/bash\x00-c\x00exec -a exefile.exe sleep 300\x00")
+	write(t, filepath.Join(proc, "201", "cmdline"), "grep\x00exefile.exe-notes\x00")
+	write(t, filepath.Join(proc, "202", "cmdline"), "exefile.exe\x00")
+	if n := CountProcCmdlines(proc, 0); n != 2 {
 		t.Fatalf("count=%d", n)
 	}
-	if n := CountProcCmdlines(proc, 100); n != 0 {
+	if n := CountProcCmdlines(proc, 100); n != 1 {
 		t.Fatalf("skip pid failed: %d", n)
 	}
 }

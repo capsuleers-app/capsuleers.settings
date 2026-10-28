@@ -161,6 +161,7 @@ export async function apply() {
       targetIds: targetRows.value.map((r) => r.id),
     }))
     if (res.ok) {
+      state.restored = {}
       state.done = { backup: res.backup, count: res.updated.length, sourceName: source.value.name }
       await rescanProfile()
     } else {
@@ -183,7 +184,7 @@ export async function restore(name: string) {
   state.backupError = ''
   const res = await Svc.Restore(name)
   if (res.ok) {
-    state.restored[name] = res.updated.length
+    state.restored = { [name]: res.updated.length }
     await loadBackups()
     await rescanProfile()
   } else {

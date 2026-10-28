@@ -8,4 +8,5 @@
 - `internal/config`: `config.json` con le cartelle aggiunte a mano.
 - Frontend: Vue 3 + TS; stato globale in `src/store.ts` (reactive), 4 viste in `src/views/`, stringhe in `src/i18n.ts`.
 - `core_user`: opzione disabilitata nel prototipo; la mappatura account arriva dopo.
-- Nota: su KDE/Wayland la finestra frameless mostra comunque la barra di sistema (da indagare).
+- Frameless su Linux/Wayland: GTK3 con `decorated=FALSE` non annuncia CSD e KWin aggiunge la sua barra (doppia barra). `frameless_gtk3.go` (cgo, tag gtk3) crea la finestra `Hidden`, a runtime pronto imposta un titlebar GTK vuoto e nascosto (= CSD annunciato) con ombra/bordo/raggio azzerati e poi `Show()`; su X11 non fa nulla. Verificato su KDE 6.7 Wayland: frame == client. Drag/min/max/close sono quelli Wails invariati (click reali non iniettati nel test).
+- Rilevamento client: conta solo processi con un argomento il cui nome file e' `exefile.exe` (non una semplice menzione in cmdline: shell, grep).
