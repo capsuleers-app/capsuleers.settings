@@ -2,7 +2,7 @@
 # Package a built Linux binary as an AppImage with Wails v3's own bundler
 # (`wails3 generate appimage`: linuxdeploy + GTK plugin, bundles GTK3 + WebKitGTK 4.1).
 # Usage: build/linux/appimage.sh <binary named capsuleers.settings> <output .AppImage>
-# Needs wails3 in PATH (go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0) and network
+# Needs wails3 in PATH (go install -tags gtk3 github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0) and network
 # (it downloads linuxdeploy). Uses the extract-and-run mode, so FUSE is not required.
 set -euo pipefail
 bin=$(realpath "$1"); out=$(realpath -m "$2")

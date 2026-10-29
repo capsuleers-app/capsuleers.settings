@@ -89,7 +89,7 @@ jobs:
       - name: Package Linux AppImage
         if: matrix.label == 'linux'
         run: |
-          go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0
+          go install -tags gtk3 github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0  # default is GTK4/webkitgtk-6.0, absent here
           build/linux/appimage.sh bin/capsuleers.settings dist/capsuleers.settings-linux-amd64.AppImage
 
       - name: Build Windows binary
