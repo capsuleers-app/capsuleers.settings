@@ -11,14 +11,18 @@ func init() { installDesktopEntry = writeDesktopEntry }
 
 // writeDesktopEntry installs ~/.local/share/applications/<appID>.desktop and the hicolor icon, so
 // Wayland compositors (KDE, GNOME) show the app icon in the taskbar instead of a generic one.
-// It points Exec at the running binary and rewrites only what changed; failures are logged, never fatal.
+// It points Exec at $APPIMAGE when set, else the running binary and rewrites only what changed; failures are logged, never fatal.
 func writeDesktopEntry() {
-	exe, err := os.Executable()
-	if err != nil {
-		return
-	}
-	if real, err := filepath.EvalSymlinks(exe); err == nil {
-		exe = real
+	// Inside an AppImage the executable lives in a temporary mount: point Exec at the .AppImage file.
+	exe := os.Getenv("APPIMAGE")
+	if exe == "" {
+		var err error
+		if exe, err = os.Executable(); err != nil {
+			return
+		}
+		if real, err := filepath.EvalSymlinks(exe); err == nil {
+			exe = real
+		}
 	}
 	data := os.Getenv("XDG_DATA_HOME")
 	if data == "" {

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Capsuleers Settings
+Comment=Copy EVE Online client settings from one character to many
+Exec=capsuleers.settings
+Icon=app.capsuleers.settings
+Terminal=false
+Categories=Game;Utility;
+StartupWMClass=app.capsuleers.settings

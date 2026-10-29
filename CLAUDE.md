@@ -14,6 +14,7 @@ cd frontend && npm run demo                          # mock con dati finti, solo
 wails3 generate bindings -ts -f "-tags gtk3"        # dopo ogni modifica a service.go (nel container)
 go vet -tags gtk3 ./... && go test -tags gtk3 ./... # nel container; sull'host: go test ./internal/...
 go build -buildvcs=false -tags "gtk3 production" -ldflags "-s -w" -o bin/capsuleers.settings .
+build/linux/appimage.sh bin/capsuleers.settings bin/capsuleers.settings-linux-amd64.AppImage  # AppImage (wails3 in PATH)
 GOOS=windows CGO_ENABLED=0 go build -tags production -ldflags "-s -w -H windowsgui" -o bin/capsuleers.settings.exe .
 ```
 File creati nel container dal suo utente risultano illeggibili sull'host: `podman unshare chown -R 0:0 <path>`.

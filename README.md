@@ -77,6 +77,8 @@ Regenerate the frontend bindings after editing `service.go`:
 ```bash
 go build -tags "gtk3 production" -ldflags "-s -w" -o bin/capsuleers.settings .
 GOOS=windows CGO_ENABLED=0 go build -tags production -ldflags "-s -w -H windowsgui" -o bin/capsuleers.settings.exe .
+# Linux AppImage (bundles GTK3 + WebKitGTK 4.1; needs wails3 in PATH and network for linuxdeploy)
+build/linux/appimage.sh bin/capsuleers.settings bin/capsuleers.settings-linux-amd64.AppImage
 ```
 
 The Windows icon and manifest come from `rsrc_windows_amd64.syso` (`build/windows/`). On Linux the
@@ -86,8 +88,8 @@ taskbars show the right icon.
 ### Continuous build & auto-release (GitHub Actions)
 
 [`.github/workflows/build.yml`](.github/workflows/build.yml) runs automatically on **every push /
-merge to `main`**: `go vet` + tests, then the Linux and Windows binaries on their native runners,
-then a **GitHub Release** with both binaries attached.
+merge to `main`**: `go vet` + tests, then the Linux AppImage and Windows binary on their native runners,
+then a **GitHub Release** with the Linux AppImage (`capsuleers.settings-linux-amd64.AppImage`) and the Windows `.exe` attached.
 
 The release version is `<major>.<minor>.<run-number>` from `frontend/package.json` (e.g. `0.1.0`
 → `v0.1.42` on run #42), stamped into the binary at build time, without committing a version bump

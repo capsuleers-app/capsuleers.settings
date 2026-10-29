@@ -1,6 +1,6 @@
 # Build, test AND auto-release capsuleers.settings on every push/merge to `main`.
 #
-# Each push to main builds the Linux binary + Windows .exe on their native
+# Each push to main builds the Linux AppImage + Windows .exe on their native
 # runners and publishes them to a GitHub Release. To get a distinct,
 # monotonically-increasing version per release WITHOUT committing a version bump
 # back to the repo (which would re-trigger the workflow), the release version is
@@ -8,7 +8,7 @@
 # frontend/package.json and stamped into the binary with -ldflags -X.
 #
 # Same shape as capsuleers.intel's build.yml; Wails has no electron-builder, so
-# a final job collects both binaries and creates the Release with `gh`.
+# a final job collects both files and creates the Release with `gh`.
 name: build
 
 on:
@@ -29,7 +29,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          # Oldest LTS runner: the AppImage bundles GTK/WebKit but not glibc, so it runs on distros with glibc >= the build host's.
+          - os: ubuntu-22.04
             label: linux
           - os: windows-latest
             label: windows
@@ -81,7 +82,15 @@ jobs:
         run: |
           go build -buildvcs=false -tags "gtk3 production" \
             -ldflags "-s -w -X github.com/capsuleers-app/capsuleers.settings/internal/esi.AppVersion=${{ steps.ver.outputs.version }}" \
-            -o dist/capsuleers.settings-linux-amd64 .
+            -o bin/capsuleers.settings .
+
+      # Wails v3's own bundler (linuxdeploy + GTK plugin): bundles GTK3 + WebKitGTK 4.1 into a
+      # self-contained AppImage. Stable asset name: the website links to it.
+      - name: Package Linux AppImage
+        if: matrix.label == 'linux'
+        run: |
+          go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0
+          build/linux/appimage.sh bin/capsuleers.settings dist/capsuleers.settings-linux-amd64.AppImage
 
       - name: Build Windows binary
         if: matrix.label == 'windows'
