@@ -29,13 +29,13 @@ onBeforeUnmount(() => ro?.disconnect())
 <template>
   <div class="stable">
     <div class="stable__head" :style="{ paddingRight: gutter + 'px' }" aria-hidden="true">
-      <table class="cap-table">
+      <table class="cap-table t">
         <colgroup><col v-for="(w, i) in cols" :key="i" :style="w ? { width: w } : undefined"></colgroup>
         <thead><slot name="head" /></thead>
       </table>
     </div>
     <div ref="body" class="stable__body">
-      <table ref="inner" class="cap-table">
+      <table ref="inner" class="cap-table t">
         <colgroup><col v-for="(w, i) in cols" :key="i" :style="w ? { width: w } : undefined"></colgroup>
         <thead class="sr"><slot name="head" /></thead>
         <tbody><slot /></tbody>
