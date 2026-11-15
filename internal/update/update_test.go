@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -85,7 +86,7 @@ func TestCheckDownloadsAndSwaps(t *testing.T) {
 	if string(got) != "new binary" {
 		t.Errorf("content %q", got)
 	}
-	if st, _ := os.Stat(app); st.Mode().Perm() != 0o755 {
+	if st, _ := os.Stat(app); runtime.GOOS != "windows" && st.Mode().Perm() != 0o755 { // no Unix modes on Windows
 		t.Error("mode")
 	}
 }
