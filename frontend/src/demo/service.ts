@@ -108,7 +108,8 @@ export const AddFolder = () => done('')
 export const RemoveFolder = (_p: string) => done(undefined)
 export const CachedNames = (ids: string[]) => done(Object.fromEntries(ids.filter((i) => NAMES[i]).map((i) => [i, NAMES[i]])))
 export const ResolveNames = (ids: string[]) => CachedNames(ids)
-export const ClientStatus = () => done(0)
+// ?running in the URL simulates an open EVE client (screenshots of the blocked state).
+export const ClientStatus = () => done(new URLSearchParams(location.search).has('running') ? 2 : 0)
 export const LastSource = (_d: string) => done(lastSource)
 export const SetLastSource = (_d: string, id: string) => { lastSource = id; return done(undefined) }
 export const Accounts = (_d: string) => done({

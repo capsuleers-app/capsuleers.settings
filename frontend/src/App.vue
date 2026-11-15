@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
+import IdentifyPanel from './components/IdentifyPanel.vue'
 import RailNav from './components/RailNav.vue'
 import TitleBar from './components/TitleBar.vue'
 import BackupsView from './views/BackupsView.vue'
@@ -21,6 +22,7 @@ onMounted(init)
       <PreviewView v-else-if="state.view === 'preview'" />
       <ReviewView v-else-if="state.view === 'review'" />
       <BackupsView v-else />
+      <IdentifyPanel v-if="state.identify.open && state.view === 'characters'" />
     </div>
   </div>
 </template>

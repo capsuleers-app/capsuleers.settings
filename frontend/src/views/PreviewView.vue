@@ -2,9 +2,10 @@
 import ScrollTable from '../components/ScrollTable.vue'
 import { computed, ref, watch } from 'vue'
 import type { PreviewWindow } from '../../bindings/github.com/capsuleers-app/capsuleers.settings/models'
-import { AppWindow, Clock, Compass, Eye, FileWarning, FolderOpen, KeyRound, LayoutGrid, LayoutTemplate, MessageSquare, Monitor, Rocket, Shapes, Store, Swords, Users } from 'lucide-vue-next'
+import { Clock, Search, Compass, FileWarning, FolderOpen, KeyRound, LayoutGrid, LayoutTemplate, MessageSquare, Rocket, Shapes, Store, Swords, Users } from 'lucide-vue-next'
 import type { Component } from 'vue'
-import { t, titleParts, type Key } from '../i18n'
+import { t, type Key } from '../i18n'
+import PageHead from '../components/PageHead.vue'
 import Portrait from '../components/Portrait.vue'
 import { go, profileMeta, rows, source, state, type PreviewTab } from '../store'
 
@@ -12,7 +13,6 @@ const KEY_CAP = 400
 const CAT_ICON: Record<string, Component> = { combat: Swords, chat: MessageSquare, fleet: Users, ship: Rocket, market: Store, navigation: Compass, other: Shapes }
 const TAB_ICON: Record<PreviewTab, Component> = { layout: LayoutTemplate, chat: MessageSquare, keys: KeyRound }
 const filter = ref('')
-const title = titleParts('preview.title')
 
 const p = computed(() => state.preview)
 const src = computed(() => p.value?.source)
@@ -20,7 +20,7 @@ const items = computed(() => p.value?.windows ?? [])
 // Every window is placed on the screen it was saved on, so windows saved at different UI scales line up.
 const rectStyle = (w: PreviewWindow) =>
   `left:${(w.left / w.screenW) * 100}%;top:${(w.top / w.screenH) * 100}%;width:${(w.width / w.screenW) * 100}%;height:${(w.height / w.screenH) * 100}%;`
-const base = 'position:absolute;box-sizing:border-box;padding:0;margin:0;font:inherit;cursor:pointer;overflow:hidden;'
+const base = 'position:absolute;box-sizing:border-box;padding:0;margin:0;font:inherit;cursor:pointer;overflow:hidden;text-align:left;'
 
 const CATS = ['combat', 'chat', 'fleet', 'ship', 'market', 'navigation', 'other']
 const catCounts = computed(() => {
@@ -36,7 +36,7 @@ const toggleCat = (c: string | null) => {
   if (c === null) { state.previewCats = []; return }
   state.previewCats = activeCats.value.includes(c) ? activeCats.value.filter((x) => x !== c) : [...activeCats.value, c]
 }
-const catChip = (on: boolean) => 'cap-chip' + (on ? ' cat-on' : '')
+const catChip = (on: boolean) => 'fchip' + (on ? ' on' : '')
 watch(visible, (v) => { if (state.previewSel && !v.some((i) => i.id === state.previewSel)) state.previewSel = '' })
 
 const solid = computed(() =>
@@ -44,8 +44,8 @@ const solid = computed(() =>
     id: w.id,
     label: w.label,
     style: base + rectStyle(w) + (w.id === state.previewSel
-      ? 'background:var(--cap-accent-well);border:1px solid var(--cap-accent);z-index:2;'
-      : 'background:var(--cap-panel);border:1px solid var(--cap-line);'),
+      ? 'background:var(--cap-accent-well);border:1px solid var(--cap-accent);z-index:2;color:var(--cap-ink);'
+      : 'background:var(--cap-panel-2);border:1px solid var(--cap-line);color:var(--cap-ink-2);'),
   })),
 )
 const ratio = computed(() => (src.value && src.value.screenW > 0 && src.value.screenH > 0 ? src.value.screenW / src.value.screenH : 16 / 9))
@@ -96,20 +96,8 @@ const keys = computed(() => {
 const tabs: [PreviewTab, Key][] = [['layout', 'preview.tab.layout'], ['chat', 'preview.tab.chat'], ['keys', 'preview.tab.keys']]
 </script>
 <template>
-  <div class="stack" style="flex: 999 1 560px">
-    <section style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 24px; padding: 20px 24px; background: var(--cap-panel); border: 1px solid var(--cap-line)">
-      <div>
-        <p class="cap-eyebrow" style="margin: 0 0 8px; display: flex; align-items: center; gap: 8px"><Eye :size="14" aria-hidden="true" />{{ t('preview.eyebrow') }}</p>
-        <h1 class="cap-title" style="font-size: 36px; margin: 0">{{ title[0] }} <span style="color: var(--cap-accent-txt)">{{ title[1] }}</span></h1>
-      </div>
-      <div v-if="source" style="display: flex; align-items: center; gap: 12px; margin-left: auto">
-        <Portrait :id="source.id" :initials="source.initials" large />
-        <div style="min-width: 0">
-          <div class="cap-tool__name--raw" style="font-size: 18px; font-weight: 700; color: var(--cap-ink)">{{ source.name }}</div>
-          <div class="cap-dim" style="font-size: 12px">{{ t('chars.id', { id: source.id }) }} &middot; {{ source.file.path.split(/[\/]/).pop() }}</div>
-        </div>
-      </div>
-    </section>
+  <div class="stack">
+    <PageHead eyebrow="preview.eyebrow" title="preview.title" lead="preview.readonly" />
 
     <section v-if="!profileMeta" class="cap-empty">
       <FolderOpen :size="32" class="ic ic-lg" aria-hidden="true" />
@@ -128,96 +116,95 @@ const tabs: [PreviewTab, Key][] = [['layout', 'preview.tab.layout'], ['chat', 'p
       <span style="max-width: 480px">{{ src?.error === 'missing' ? t('preview.err.missing') : t('preview.err.body') }}</span>
     </section>
 
-    <template v-else>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)); gap: 12px">
-        <div class="cap-tile"><span class="cap-tile__lab" style="display: inline-flex; align-items: center; gap: 6px"><AppWindow :size="14" class="ic" aria-hidden="true" />{{ t('preview.t.windows') }}</span><span class="cap-tile__val">{{ src.windows }}</span><span class="cap-tile__delta cap-dim">{{ t('preview.t.stacks', { n: src.stacks, m: src.locked }) }}</span></div>
-        <div class="cap-tile"><span class="cap-tile__lab" style="display: inline-flex; align-items: center; gap: 6px"><Monitor :size="14" class="ic" aria-hidden="true" />{{ t('preview.t.saved') }}</span><span class="cap-tile__val">{{ src.screenW ? `${src.screenW} × ${src.screenH}` : '-' }}</span><span class="cap-tile__delta cap-dim">{{ scaleText }}</span></div>
-        <div class="cap-tile"><span class="cap-tile__lab" style="display: inline-flex; align-items: center; gap: 6px"><MessageSquare :size="14" class="ic" aria-hidden="true" />{{ t('preview.t.chat') }}</span><span class="cap-tile__val">{{ chatTotal }}</span><span class="cap-tile__delta cap-dim">{{ chatText }}</span></div>
-      </div>
-
-      <div class="split">
-        <section class="cap-panel fill" style="flex: 3 1 560px; min-width: 0">
-          <nav style="display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--cap-line)" :aria-label="t('preview.tabs')">
-            <a v-for="[k, lab] in tabs" :key="k" class="cap-surface-tab" :class="{ 'is-active': state.previewTab === k }" href="#" :aria-current="state.previewTab === k ? 'page' : undefined" @click.prevent="state.previewTab = k"><component :is="TAB_ICON[k]" :size="14" class="ic" aria-hidden="true" style="margin-right: 6px; vertical-align: -2px" />{{ t(lab) }}</a>
-          </nav>
-
-          <div v-if="state.previewTab === 'layout'" class="cap-panel__b fill layout-tab">
-            <p v-if="!items.length" class="cap-hint" style="margin: 0">{{ t('preview.noWindows') }}</p>
-            <template v-else>
-              <div role="group" :aria-label="t('preview.cat.filter')" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px">
-                <button :class="catChip(!filtered)" :aria-pressed="!filtered" @click="toggleCat(null)"><LayoutGrid :size="12" aria-hidden="true" />{{ t('preview.cat.all') }} · {{ items.length }}<template v-if="!filtered"> · {{ t('preview.cat.on') }}</template></button>
-                <button v-for="c in catList" :key="c" :class="catChip(activeCats.includes(c))" :aria-pressed="activeCats.includes(c)" @click="toggleCat(c)"><component :is="CAT_ICON[c]" :size="12" aria-hidden="true" />{{ t(`preview.cat.${c}` as Key) }} · {{ catCounts[c] }}<template v-if="activeCats.includes(c)"> · {{ t('preview.cat.on') }}</template></button>
-              </div>
-              <div ref="stage" class="layout-stage">
-              <div :style="`position: relative; ${canvasStyle}; box-sizing: border-box; background: var(--cap-panel-2); border: 1px solid var(--cap-line); overflow: hidden`">
-                <button v-for="w in solid" :key="w.id" :style="w.style" :aria-label="w.label" :aria-pressed="w.id === state.previewSel" @click="state.previewSel = w.id">
-                  <span style="display: block; padding: 3px 6px; border-bottom: 1px solid var(--cap-line-soft); font-size: 10px; font-weight: 800; letter-spacing: 0.08em; color: var(--cap-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left">{{ w.label }}</span>
-                </button>
-              </div>
-              </div>
-              <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 10px; font-size: 12px; color: var(--cap-ink-3)">
-                <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 14px; height: 10px; border: 1px solid var(--cap-line); background: var(--cap-panel)"></span>{{ t('preview.lg.window') }}</span>
-                <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 14px; height: 10px; border: 1px solid var(--cap-accent)"></span>{{ t('preview.lg.sel') }}</span>
-                <span v-if="filtered">{{ t('preview.lg.shown', { n: visible.length, m: items.length }) }}</span>
-                <span v-if="src.screenW" style="margin-left: auto">{{ t('preview.lg.scaled', { w: src.screenW, h: src.screenH }) }}</span>
-              </div>
-            </template>
+    <div v-else class="sc" style="overflow: hidden">
+      <div class="sec first" style="padding-bottom: 0">
+        <div class="ins" style="gap: 14px">
+          <Portrait :id="source.id" :initials="source.initials" large />
+          <div class="who"><b style="font-size: 16px">{{ source.name }}</b><p class="num">{{ source.file.path.split(/[\\/]/).pop() }}</p></div>
+          <div class="big" style="margin-left: auto">
+            <div class="k"><b class="num">{{ src.windows }}</b><span>{{ t('preview.t.windows') }} &middot; {{ t('preview.t.stacks', { n: src.stacks, m: src.locked }) }}</span></div>
+            <div class="k"><b class="num">{{ src.screenW ? `${src.screenW} × ${src.screenH}` : '-' }}</b><span>{{ t('preview.t.saved') }} &middot; {{ scaleText }}</span></div>
+            <div class="k" :title="chatText"><b class="num">{{ chatTotal }}</b><span>{{ t('preview.t.chat') }}</span></div>
           </div>
-
-          <template v-else-if="state.previewTab === 'chat'">
-            <p v-if="!p.channels.length" class="cap-hint" style="margin: 12px">{{ t('preview.chat.empty') }}</p>
-            <ScrollTable v-else :cols="['', '200px']">
-              <template #head><tr><th>{{ t('preview.chat.th.channel') }}</th><th>{{ t('preview.chat.th.type') }}</th></tr></template>
-                <tr v-for="c in p.channels" :key="c.id">
-                  <td style="color: var(--cap-ink); font-weight: 700">{{ c.label }}</td>
-                  <td>{{ t(`preview.kind.${c.kind}` as Key) }}</td>
-                </tr>
-            </ScrollTable>
-          </template>
-
-          <div v-else class="fill">
-            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--cap-line-soft)">
-              <input v-model="filter" class="cap-input" type="search" :placeholder="t('preview.keys.filter')" :aria-label="t('preview.keys.filter')" style="flex: 1 1 200px">
-              <span class="cap-hint">{{ t('preview.keys.count', { n: keys.length }) }}</span>
-            </div>
-            <ScrollTable v-if="keys.length" :cols="['180px', '', '110px', '90px']">
-                <template #head><tr><th>{{ t('preview.keys.th.group') }}</th><th>{{ t('preview.keys.th.key') }}</th><th>{{ t('preview.keys.th.type') }}</th><th class="text-right">{{ t('preview.keys.th.size') }}</th></tr></template>
-                  <tr v-for="k in keys.slice(0, KEY_CAP)" :key="k.group + '/' + k.name">
-                    <td>{{ k.group }}</td><td style="word-break: break-all">{{ k.name }}</td><td>{{ t(`preview.type.${k.type}` as Key) }}</td><td class="num" style="text-align: right">{{ k.type === 'list' || k.type === 'map' || k.type === 'tuple' || k.type === 'text' ? k.len : '' }}</td>
-                  </tr>
-            </ScrollTable>
-            <p v-else class="cap-hint" style="margin: 12px">{{ t('preview.keys.none') }}</p>
-            <p v-if="keys.length > KEY_CAP" class="cap-hint" style="margin: 0; padding: 8px 12px">{{ t('preview.keys.cap', { n: KEY_CAP }) }}</p>
-          </div>
-        </section>
-
-        <div style="flex: 1 1 260px; min-width: 0">
-          <section class="cap-panel cap-panel--accent">
-            <header class="cap-panel__h"><AppWindow :size="14" class="ic" aria-hidden="true" style="margin-right: 8px" /><span class="cap-panel__title">{{ t('preview.win') }}</span><span style="margin-left: auto; word-break: break-all">{{ sel?.id ?? '' }}</span></header>
-            <div v-if="sel" class="cap-panel__b" style="display: flex; flex-direction: column; gap: 10px">
-              <div class="cap-tool__name--raw" style="font-size: 16px; font-weight: 700; color: var(--cap-ink)">{{ sel.label }}</div>
-              <div>
-                <div class="cap-kv"><span class="cap-kv__k">{{ t('preview.pos') }}</span><span class="cap-kv__v">{{ `${sel.left}, ${sel.top}` }}</span></div>
-                <div class="cap-kv"><span class="cap-kv__k">{{ t('preview.size') }}</span><span class="cap-kv__v">{{ sel.width }} × {{ sel.height }}</span></div>
-                <div class="cap-kv"><span class="cap-kv__k">{{ t('preview.stack') }}</span><span class="cap-kv__v">{{ sel.members.length ? sel.members.join(', ') : '-' }}</span></div>
-                <div class="cap-kv"><span class="cap-kv__k">{{ t('preview.state') }}</span><span class="cap-kv__v">{{ stateText(sel) }}</span></div>
-              </div>
-            </div>
-            <div v-else class="cap-panel__b cap-hint">{{ t('preview.noWindows') }}</div>
-          </section>
-
         </div>
       </div>
 
-      <section class="cap-panel bar">
-        <span class="cap-hint" style="align-items: center; gap: 6px"><Eye :size="14" class="ic" aria-hidden="true" />{{ t('preview.readonly') }}</span>
-      </section>
-    </template>
+      <div class="sec grow" style="margin-top: 22px; padding-top: 0; border-top: 0; display: flex; flex-direction: column; min-height: 0">
+        <nav class="tbs" :aria-label="t('preview.tabs')">
+          <a v-for="[k, lab] in tabs" :key="k" :class="{ on: state.previewTab === k }" href="#" :aria-current="state.previewTab === k ? 'page' : undefined" @click.prevent="state.previewTab = k"><component :is="TAB_ICON[k]" :size="14" class="ic" aria-hidden="true" />{{ t(lab) }}</a>
+        </nav>
+
+        <div v-if="state.previewTab === 'layout'" class="lay-tab">
+          <p v-if="!items.length" class="cap-hint" style="margin: 14px 0">{{ t('preview.noWindows') }}</p>
+          <template v-else>
+            <div role="group" :aria-label="t('preview.cat.filter')" style="display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0; flex: none">
+              <button :class="catChip(!filtered)" :aria-pressed="!filtered" @click="toggleCat(null)"><LayoutGrid :size="12" aria-hidden="true" />{{ t('preview.cat.all') }} &middot; {{ items.length }}</button>
+              <button v-for="c in catList" :key="c" :class="catChip(activeCats.includes(c))" :aria-pressed="activeCats.includes(c)" @click="toggleCat(c)"><component :is="CAT_ICON[c]" :size="12" aria-hidden="true" />{{ t(`preview.cat.${c}` as Key) }} &middot; {{ catCounts[c] }}</button>
+            </div>
+            <div class="lay">
+              <div class="lay-l">
+                <div ref="stage" class="scr" role="img" :aria-label="t('preview.lg.scaled', { w: src.screenW, h: src.screenH })">
+                  <div :style="`position: relative; ${canvasStyle}; box-sizing: border-box; background: var(--cap-panel); border: 1px solid var(--cap-line); overflow: hidden`">
+                    <button v-for="w in solid" :key="w.id" :style="w.style" :aria-label="w.label" :aria-pressed="w.id === state.previewSel" @click="state.previewSel = w.id">
+                      <span class="wl">{{ w.label }}</span>
+                    </button>
+                  </div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; font-size: 12px; color: var(--cap-ink-3); flex: none">
+                  <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 14px; height: 10px; border: 1px solid var(--cap-line); background: var(--cap-panel-2)"></span>{{ t('preview.lg.window') }}</span>
+                  <span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 14px; height: 10px; border: 1px solid var(--cap-accent); background: var(--cap-accent-well)"></span>{{ t('preview.lg.sel') }}</span>
+                  <span v-if="filtered">{{ t('preview.lg.shown', { n: visible.length, m: items.length }) }}</span>
+                  <span v-if="src.screenW" style="margin-left: auto">{{ t('preview.lg.scaled', { w: src.screenW, h: src.screenH }) }}</span>
+                </div>
+              </div>
+              <aside class="wd">
+                <span class="lab">{{ t('preview.win') }}</span>
+                <template v-if="sel">
+                  <h3 class="cap-title" style="text-transform: none">{{ sel.label }}</h3>
+                  <p class="mut num" style="font-size: 12px; margin: 0; word-break: break-all">{{ sel.id }}</p>
+                  <div style="margin-top: 12px">
+                    <div class="kvr">{{ t('preview.pos') }}<b class="num">{{ `${sel.left}, ${sel.top}` }}</b></div>
+                    <div class="kvr">{{ t('preview.size') }}<b class="num">{{ sel.width }} × {{ sel.height }}</b></div>
+                    <div class="kvr">{{ t('preview.stack') }}<b :title="sel.members.join(', ')">{{ sel.members.length ? sel.members.join(', ') : '-' }}</b></div>
+                    <div class="kvr">{{ t('preview.state') }}<b>{{ stateText(sel) }}</b></div>
+                  </div>
+                </template>
+                <p v-else class="cap-hint" style="margin: 8px 0 0">{{ t('preview.noWindows') }}</p>
+              </aside>
+            </div>
+          </template>
+        </div>
+
+        <template v-else-if="state.previewTab === 'chat'">
+          <p v-if="!p.channels.length" class="cap-hint" style="margin: 14px 0">{{ t('preview.chat.empty') }}</p>
+          <ScrollTable v-else style="flex: 1 1 0; min-height: 0; margin-top: 14px" :cols="['', '200px']">
+            <template #head><tr><th>{{ t('preview.chat.th.channel') }}</th><th>{{ t('preview.chat.th.type') }}</th></tr></template>
+              <tr v-for="c in p.channels" :key="c.id">
+                <td style="color: var(--cap-ink); font-weight: 700">{{ c.label }}</td>
+                <td class="mut">{{ t(`preview.kind.${c.kind}` as Key) }}</td>
+              </tr>
+          </ScrollTable>
+        </template>
+
+        <div v-else class="keys-tab">
+          <div style="display: flex; align-items: center; gap: 12px; margin: 14px 0; flex: none">
+            <label class="inp" style="width: 340px"><Search :size="14" class="ic" aria-hidden="true" /><input v-model="filter" type="search" :placeholder="t('preview.keys.filter')" :aria-label="t('preview.keys.filter')"></label>
+            <span class="cap-hint">{{ t('preview.keys.count', { n: keys.length }) }}</span>
+          </div>
+          <ScrollTable v-if="keys.length" style="flex: 1 1 0; min-height: 0" :cols="['180px', '', '110px', '90px']">
+              <template #head><tr><th>{{ t('preview.keys.th.group') }}</th><th>{{ t('preview.keys.th.key') }}</th><th>{{ t('preview.keys.th.type') }}</th><th class="r">{{ t('preview.keys.th.size') }}</th></tr></template>
+                <tr v-for="k in keys.slice(0, KEY_CAP)" :key="k.group + '/' + k.name">
+                  <td class="mut">{{ k.group }}</td><td style="word-break: break-all; color: var(--cap-ink)">{{ k.name }}</td><td class="mut">{{ t(`preview.type.${k.type}` as Key) }}</td><td class="num r mut">{{ k.type === 'list' || k.type === 'map' || k.type === 'tuple' || k.type === 'text' ? k.len : '' }}</td>
+                </tr>
+          </ScrollTable>
+          <p v-else class="cap-hint" style="margin: 12px 0">{{ t('preview.keys.none') }}</p>
+          <p v-if="keys.length > KEY_CAP" class="cap-hint" style="margin: 0; padding: 8px 0; flex: none">{{ t('preview.keys.cap', { n: KEY_CAP }) }}</p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 <style scoped>
-/* Il canvas riempie lo spazio restante e ci sta tutto (scala proporzionale), senza scorrere. */
-.layout-tab { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
-.layout-stage { flex: 1 1 0; min-height: 160px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.cat-on { color: var(--cap-ink); background: var(--cap-accent-well); border-color: var(--cap-accent-line); }
+.lay-tab, .keys-tab { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; }
+.wl { display: block; padding: 6px 7px; font-size: 11px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
 </style>

@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import ScrollTable from '../components/ScrollTable.vue'
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
-import { Archive, ArrowRight, Check, Eye, FolderOpen, Pencil, RefreshCw, Search, Target, UserRound, Users, UserSearch, UserX, X } from 'lucide-vue-next'
-import IdentifyPanel from '../components/IdentifyPanel.vue'
+import { Archive, ArrowRight, Check, Eye, FolderOpen, Pencil, RefreshCw, Search, Users, UserSearch, UserX, X } from 'lucide-vue-next'
 import InfoTip from '../components/InfoTip.vue'
 import PageHead from '../components/PageHead.vue'
 import Portrait from '../components/Portrait.vue'
@@ -58,7 +57,7 @@ function toggleAll() {
 }
 </script>
 <template>
-  <div class="stack" style="flex: 999 1 560px">
+  <div class="stack">
     <PageHead eyebrow="chars.eyebrow" title="chars.title" lead="chars.lead" :icon="Users">
       <button class="cap-btn" @click="rescanProfile()"><RefreshCw :size="14" aria-hidden="true" />{{ t('chars.rescan') }}</button>
     </PageHead>
@@ -74,111 +73,103 @@ function toggleAll() {
     </section>
 
     <template v-else>
-      <div class="split">
-        <section v-if="source" class="cap-panel cap-panel--accent" style="flex: 1 1 280px; min-width: 0">
-          <header class="cap-panel__h"><Target :size="14" class="ic" aria-hidden="true" style="margin-right: 8px" /><span class="cap-panel__title">{{ t('chars.source') }}</span><span style="margin-left: auto">{{ source.file.path.split(/[\\/]/).pop() }}</span></header>
-          <div class="cap-panel__b" style="display: flex; flex-direction: column; gap: 14px">
-            <div style="display: flex; align-items: center; gap: 12px">
-              <Portrait :id="source.id" :initials="source.initials" large />
-              <div style="min-width: 0">
-                <div class="cap-tool__name--raw" style="font-size: 18px; font-weight: 700; color: var(--cap-ink)">{{ source.name }}</div>
-                <div class="cap-dim" style="font-size: 12px; display: flex; align-items: center; gap: 6px"><UserRound :size="14" class="ic" aria-hidden="true" />{{ t('chars.id', { id: source.id }) }}</div>
-              </div>
+      <div class="sc" style="padding-bottom: 0; overflow: hidden">
+        <div class="cw">
+          <section v-if="source" class="srcp">
+            <span class="lab">{{ t('chars.source') }}</span>
+            <Portrait :id="source.id" :initials="source.initials" square />
+            <div style="min-width: 0">
+              <h2 class="cap-title" style="font-size: 20px; margin: 0; font-weight: 700; word-break: break-word; text-transform: none">{{ source.name }}</h2>
+              <p class="mut num" style="font-size: 12px; margin: 3px 0 0; word-break: break-all">{{ source.file.path.split(/[\\/]/).pop() }}</p>
             </div>
             <div>
-              <div class="cap-kv"><span class="cap-kv__k">{{ t('chars.lastSaved') }}</span><span class="cap-kv__v">{{ fmtDate(source.file.saved) }}</span></div>
-              <div class="cap-kv"><span class="cap-kv__k">{{ t('chars.size') }}</span><span class="cap-kv__v">{{ fmtSize(source.file.size) }}</span></div>
-              <div class="cap-kv"><span class="cap-kv__k">{{ t('chars.account') }}</span><span class="cap-kv__v">{{ sourceAccount ? accountLabel(sourceAccount) : t('acct.unknown') }}</span></div>
+              <div class="kvr">{{ t('chars.lastSaved') }}<b class="num">{{ fmtDate(source.file.saved) }}</b></div>
+              <div class="kvr">{{ t('chars.size') }}<b class="num">{{ fmtSize(source.file.size) }}</b></div>
+              <div class="kvr">{{ t('chars.account') }}<b>{{ sourceAccount ? accountLabel(sourceAccount) : t('acct.unknown') }}</b></div>
             </div>
-            <label style="display: flex; gap: 8px; align-items: flex-start; font-size: 13px" :style="{ color: sourceAccount ? 'var(--cap-ink-2)' : 'var(--cap-ink-3)' }"><input class="cap-input" type="checkbox" :disabled="!sourceAccount" :checked="copyUserOn" style="margin-top: 2px" @change="setCopyUser(($event.target as HTMLInputElement).checked)"> <span>{{ t('chars.user') }} <InfoTip :text="sourceAccount ? t('chars.userHint') : t('chars.userNeed')" /></span></label>
-            <span class="cap-hint" style="align-items: center; gap: 6px">{{ t('chars.noteShort') }} <InfoTip :text="t('chars.note')" /></span>
+            <label style="display: flex; gap: 10px; align-items: flex-start; font-size: 13px" :style="{ color: sourceAccount ? 'var(--cap-ink-2)' : 'var(--cap-ink-3)' }"><input class="cap-input" type="checkbox" :disabled="!sourceAccount" :checked="copyUserOn" style="margin-top: 2px" @change="setCopyUser(($event.target as HTMLInputElement).checked)"> <span>{{ t('chars.user') }} <InfoTip :text="sourceAccount ? t('chars.userHint') : t('chars.userNeed')" end /></span></label>
+            <span class="cap-hint" style="align-items: center; gap: 6px">{{ t('chars.noteShort') }} <InfoTip :text="t('chars.note')" end /></span>
             <span v-if="state.namesOffline" class="cap-hint">{{ t('chars.offline') }}</span>
-          </div>
-        </section>
+          </section>
 
-        <section class="cap-panel fill" style="flex: 2 1 480px; min-width: 0">
-          <header class="cap-panel__h"><Users :size="14" class="ic" aria-hidden="true" style="margin-right: 8px" /><span class="cap-panel__title">{{ t('chars.targets') }}</span><span style="margin-left: auto">{{ t('chars.selected', { n: targetRows.length, total: others.length }) }}</span></header>
-          <div style="display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--cap-line-soft)">
-            <button class="cap-chip cap-chip--on" aria-pressed="true">{{ t('chars.all', { n: others.length }) }}</button>
-            <button class="cap-chip" :disabled="!shownTargets.length" @click="toggleAll()">{{ allSelected ? t('chars.deselectAll') : t('chars.selectAll') }}</button>
-            <span class="targets__search-w"><Search :size="14" class="ic" aria-hidden="true" /><input v-model="query" class="cap-input targets__search" type="search" :placeholder="t('chars.search')" :aria-label="t('chars.search')"></span>
-          </div>
-          <ScrollTable :cols="['80px', '', '150px', '90px', '64px']">
-            <template #head><tr>
-                <th class="text-center">{{ t('chars.th.source') }}</th><th>{{ t('chars.th.char') }}</th><th>{{ t('chars.th.saved') }}</th>
-                <th class="text-right">{{ t('chars.th.size') }}</th>
-                <th class="text-center">{{ t('chars.th.target') }}</th>
+          <section class="dest">
+            <div class="sh" style="margin-bottom: 12px">
+              <h2>{{ t('chars.targets') }}</h2><span class="num"><b style="color: var(--cap-accent-txt)">{{ targetRows.length }}</b> / {{ others.length }}</span>
+              <span class="r" style="display: flex; gap: 8px; align-items: center">
+                <button class="cap-btn s" :disabled="!shownTargets.length" @click="toggleAll()">{{ allSelected ? t('chars.deselectAll') : t('chars.selectAll') }}</button>
+                <label class="inp" style="width: 220px"><Search :size="14" class="ic" aria-hidden="true" /><input v-model="query" type="search" :placeholder="t('chars.search')" :aria-label="t('chars.search')"></label>
+              </span>
+            </div>
+            <ScrollTable :cols="['56px', '', '160px', '110px', '100px']">
+              <template #head><tr>
+                <th>{{ t('chars.th.source') }}</th><th>{{ t('chars.th.char') }}</th><th>{{ t('chars.th.saved') }}</th>
+                <th class="r">{{ t('chars.th.size') }}</th>
+                <th class="r">{{ t('chars.th.target') }}</th>
               </tr></template>
-            <template v-for="g in shownGroups" :key="g.userId">
-              <tr class="grp"><td colspan="5">
-                <span v-if="editing === g.userId" class="grp__row">
-                  <input ref="field" v-model="draft" class="cap-input grp__edit" maxlength="40" :aria-label="t('acct.rename')" :placeholder="t('acct.aliasPh')" @keydown.enter.prevent="saveEdit" @keydown.esc.prevent="editing = ''">
-                  <button class="grp__ib" :title="t('acct.save')" :aria-label="t('acct.save')" @click="saveEdit"><Check :size="14" aria-hidden="true" /></button>
-                  <button class="grp__ib" :title="t('acct.cancel')" :aria-label="t('acct.cancel')" @click="editing = ''"><X :size="14" aria-hidden="true" /></button>
-                </span>
-                <span v-else class="grp__row" :title="accountTitle(g.userId)">
-                  <span class="grp__name">{{ accountLabel(g.userId) }}</span>
-                  <button class="grp__ib" :title="t('acct.rename')" :aria-label="t('acct.rename')" @click="startEdit(g.userId)"><Pencil :size="14" aria-hidden="true" /></button>
-                  <span class="cap-dim grp__n">{{ countText(g.rows.length) }}</span>
-                </span>
-              </td></tr>
-              <tr v-for="r in g.shownRows" :key="r.id" :class="{ 'is-target': r.id !== state.sourceId && state.targets[r.id] }">
-                <td style="text-align: center"><input class="cap-input" type="radio" name="source" :checked="r.id === state.sourceId" :aria-label="t('chars.useSource', { name: r.name })" @change="pickSource(r.id)"></td>
-                <td><span style="display: inline-flex; align-items: center; gap: 10px"><Portrait :id="r.id" :initials="r.initials" /><span style="color: var(--cap-ink); font-weight: 700">{{ r.name }}</span></span></td>
-                <td class="num">{{ fmtDate(r.file.saved) }}</td>
-                <td class="num" style="text-align: right">{{ fmtSize(r.file.size) }}</td>
-                <td style="text-align: center">
-                  <span v-if="r.id === state.sourceId" class="cap-chip cap-chip--on" style="padding: 3px 6px">{{ t('chars.src') }}</span>
+              <template v-for="g in shownGroups" :key="g.userId">
+                <tr class="gh"><td colspan="5">
+                  <span v-if="editing === g.userId" class="grp__row">
+                    <input ref="field" v-model="draft" class="cap-input grp__edit" maxlength="40" :aria-label="t('acct.rename')" :placeholder="t('acct.aliasPh')" @keydown.enter.prevent="saveEdit" @keydown.esc.prevent="editing = ''">
+                    <button class="grp__ib" :title="t('acct.save')" :aria-label="t('acct.save')" @click="saveEdit"><Check :size="14" aria-hidden="true" /></button>
+                    <button class="grp__ib" :title="t('acct.cancel')" :aria-label="t('acct.cancel')" @click="editing = ''"><X :size="14" aria-hidden="true" /></button>
+                  </span>
+                  <span v-else class="grp__row" :title="accountTitle(g.userId)">
+                    <span class="grp__name">{{ accountLabel(g.userId) }}</span>
+                    <button class="grp__ib" :title="t('acct.rename')" :aria-label="t('acct.rename')" @click="startEdit(g.userId)"><Pencil :size="14" aria-hidden="true" /></button>
+                    <span class="mut grp__n">{{ countText(g.rows.length) }}</span>
+                  </span>
+                </td></tr>
+                <tr v-for="r in g.shownRows" :key="r.id" :class="{ 'is-target': r.id !== state.sourceId && state.targets[r.id] }">
+                <td><input class="cap-input" type="radio" name="source" :checked="r.id === state.sourceId" :aria-label="t('chars.useSource', { name: r.name })" @change="pickSource(r.id)"></td>
+                <td><span class="nm"><Portrait :id="r.id" :initials="r.initials" />{{ r.name }}</span></td>
+                <td class="num mut">{{ fmtDate(r.file.saved) }}</td>
+                <td class="num r mut">{{ fmtSize(r.file.size) }}</td>
+                <td class="r">
+                  <span v-if="r.id === state.sourceId" class="tag acc">{{ t('chars.src') }}</span>
                   <input v-else class="cap-input" type="checkbox" :checked="!!state.targets[r.id]" :aria-label="t('chars.target', { name: r.name })" @change="toggleTarget(r.id)">
                 </td>
               </tr>
-            </template>
-            <template v-if="loaded && shownUnknown.length">
-              <tr class="grp"><td colspan="5"><span class="grp__row">
-                <span class="grp__name">{{ t('acct.toIdentify') }}</span><InfoTip :text="t('acct.toIdentifyHint')" below />
-                <span class="cap-dim grp__n">{{ countText(accountGroups.unknown.length) }}</span>
-                <button class="cap-btn grp__btn" :disabled="state.identify.open" @click="startIdentify()"><UserSearch :size="14" aria-hidden="true" />{{ t('ident.btn') }}</button>
-              </span></td></tr>
-              <tr v-for="r in shownUnknown" :key="r.id" :class="{ 'is-target': r.id !== state.sourceId && state.targets[r.id] }">
-                <td style="text-align: center"><input class="cap-input" type="radio" name="source" :checked="r.id === state.sourceId" :aria-label="t('chars.useSource', { name: r.name })" @change="pickSource(r.id)"></td>
-                <td><span style="display: inline-flex; align-items: center; gap: 10px"><Portrait :id="r.id" :initials="r.initials" /><span style="color: var(--cap-ink); font-weight: 700">{{ r.name }}</span></span></td>
-                <td class="num">{{ fmtDate(r.file.saved) }}</td>
-                <td class="num" style="text-align: right">{{ fmtSize(r.file.size) }}</td>
-                <td style="text-align: center">
-                  <span v-if="r.id === state.sourceId" class="cap-chip cap-chip--on" style="padding: 3px 6px">{{ t('chars.src') }}</span>
+              </template>
+              <template v-if="loaded && shownUnknown.length">
+                <tr class="gh"><td colspan="5"><span class="grp__row">
+                  <span class="grp__name">{{ t('acct.toIdentify') }}</span><InfoTip :text="t('acct.toIdentifyHint')" below />
+                  <span class="mut grp__n">{{ countText(accountGroups.unknown.length) }}</span>
+                  <button class="cap-btn s grp__btn" :disabled="state.identify.open" @click="startIdentify()"><UserSearch :size="14" aria-hidden="true" />{{ t('ident.btn') }}</button>
+                </span></td></tr>
+                <tr v-for="r in shownUnknown" :key="r.id" :class="{ 'is-target': r.id !== state.sourceId && state.targets[r.id] }">
+                <td><input class="cap-input" type="radio" name="source" :checked="r.id === state.sourceId" :aria-label="t('chars.useSource', { name: r.name })" @change="pickSource(r.id)"></td>
+                <td><span class="nm"><Portrait :id="r.id" :initials="r.initials" />{{ r.name }}</span></td>
+                <td class="num mut">{{ fmtDate(r.file.saved) }}</td>
+                <td class="num r mut">{{ fmtSize(r.file.size) }}</td>
+                <td class="r">
+                  <span v-if="r.id === state.sourceId" class="tag acc">{{ t('chars.src') }}</span>
                   <input v-else class="cap-input" type="checkbox" :checked="!!state.targets[r.id]" :aria-label="t('chars.target', { name: r.name })" @change="toggleTarget(r.id)">
                 </td>
               </tr>
-            </template>
-            <tr v-if="noMatch"><td colspan="5" class="cap-dim" style="text-align: center; padding: 16px">{{ t('chars.noMatch', { q: query.trim() }) }}</td></tr>
-          </ScrollTable>
-        </section>
+              </template>
+              <tr v-if="noMatch"><td colspan="5" class="mut" style="text-align: center">{{ t('chars.noMatch', { q: query.trim() }) }}</td></tr>
+            </ScrollTable>
+          </section>
+        </div>
       </div>
 
-      <IdentifyPanel v-if="state.identify.open" />
-
-      <section class="cap-panel bar">
-        <span style="font-size: 14px; color: var(--cap-ink)">{{ targetRows.length === 1 ? t('chars.willOne', { name: source?.name ?? '' }) : t('chars.will', { n: targetRows.length, name: source?.name ?? '' }) }}</span>
-        <span class="cap-hint" style="align-items: center; gap: 6px"><Archive :size="14" class="ic" aria-hidden="true" />{{ t('chars.backupFirst') }}</span>
-        <div style="margin-left: auto; display: flex; gap: 8px">
+      <div class="fb">
+        <span><b>{{ targetRows.length === 1 ? t('chars.willOne', { name: source?.name ?? '' }) : t('chars.will', { n: targetRows.length, name: source?.name ?? '' }) }}</b> <Archive :size="14" class="ic" aria-hidden="true" style="display: inline; vertical-align: -2px" /> {{ t('chars.backupFirst') }}</span>
+        <div class="sp">
           <button class="cap-btn" :disabled="!source" @click="openPreview()"><Eye :size="14" aria-hidden="true" />{{ t('chars.preview') }}</button>
           <button class="cap-btn cap-btn--pri" :disabled="!targetRows.length" @click="go('review')">{{ targetRows.length === 1 ? t('chars.reviewOne') : t('chars.review', { n: targetRows.length }) }}<ArrowRight :size="14" aria-hidden="true" /></button>
         </div>
-      </section>
+      </div>
     </template>
   </div>
 </template>
 
 <style scoped>
-/* `input.cap-input` per battere `.cap-input:not(...):not(...)` del bundle (piu' specifico). */
-.targets__search-w { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; flex: 0 1 240px; color: var(--cap-ink-3); }
-input.cap-input.targets__search { flex: 1; width: auto; min-width: 120px; height: 28px; padding: 0 10px; font-size: 13px; }
-tr.grp > td { background: var(--cap-panel-2); border-top: 1px solid var(--cap-line); padding: 6px 12px; }
 .grp__row { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .grp__name { color: var(--cap-ink); font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.grp__n { margin-left: auto; font-size: 12px; white-space: nowrap; }
-.grp__btn { flex: none; height: 28px; }
+.grp__n { margin-left: auto; font-size: 12px; font-weight: 400; white-space: nowrap; }
+.grp__btn { flex: none; }
 input.cap-input.grp__edit { flex: 1 1 0; min-width: 0; width: auto; height: 28px; padding: 0 8px; font-size: 13px; }
-.grp__ib { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 24px; height: 28px; padding: 0; background: transparent; border: 0; color: var(--cap-ink-3); cursor: pointer; }
+.grp__ib { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 26px; height: 28px; padding: 0; background: transparent; border: 0; color: var(--cap-ink-3); cursor: pointer; }
 .grp__ib:hover, .grp__ib:focus-visible { color: var(--cap-ink); }
 </style>
