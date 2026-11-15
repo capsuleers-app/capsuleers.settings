@@ -53,7 +53,7 @@ jobs:
       # GTK3 + WebKitGTK 4.1 headers for the cgo Linux build (Wails v3 defaults to GTK4: we build -tags gtk3).
       - name: Install Linux build deps
         if: matrix.label == 'linux'
-        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev glib-networking  # glib-networking: TLS module bundled into the AppImage
 
       # Keep the package.json major.minor, use the workflow run number as the
       # patch. Every matrix job in the same run gets the SAME value, so both OSes
