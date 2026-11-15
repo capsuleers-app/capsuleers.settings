@@ -2,8 +2,17 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"log"
+	"net/http"
+	"os"
+	"os/exec"
+	"runtime"
+	"sync"
+
+	"github.com/capsuleers-app/capsuleers.settings/internal/esi"
+	"github.com/capsuleers-app/capsuleers.settings/internal/update"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -60,7 +69,74 @@ func main() {
 	if framelessFix != nil {
 		framelessFix(win)
 	}
+	startUpdater(app, win)
 	if err := app.Run(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// startUpdater wires the silent self-update (internal/update): release builds only, in the
+// background; errors are only logged. A downloaded update is applied on "Restart & install" or,
+// if postponed, when the app quits.
+func startUpdater(app *application.App, win *application.WebviewWindow) {
+	if _, ok := update.ParseVersion(esi.AppVersion); !ok {
+		return // dev build
+	}
+	exe, _ := os.Executable()
+	if _, file, ok := update.Target(runtime.GOOS, os.Getenv("APPIMAGE"), exe); ok {
+		update.Cleanup(file)
+	} else {
+		return
+	}
+	var (
+		mu      sync.Mutex
+		pending *update.Pending
+	)
+	// applyPending swaps the downloaded file in (once).
+	applyPending := func() bool {
+		mu.Lock()
+		defer mu.Unlock()
+		if pending == nil {
+			return false
+		}
+		p := pending
+		pending = nil
+		if err := p.Apply(); err != nil {
+			log.Println("update: apply:", err)
+			p.Discard()
+			return false
+		}
+		return true
+	}
+	app.OnShutdown(func() { applyPending() })
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), update.CheckTimeout)
+		defer cancel()
+		u := &update.Updater{Current: esi.AppVersion, UserAgent: esi.UserAgent, Client: &http.Client{}}
+		p, err := u.Check(ctx, runtime.GOOS, os.Getenv("APPIMAGE"), exe)
+		if err != nil {
+			log.Println("update:", err)
+			return
+		}
+		if p == nil {
+			return
+		}
+		mu.Lock()
+		pending = p
+		mu.Unlock()
+		t := update.Texts(update.Lang(update.SystemLocale()), p.Version)
+		d := app.Dialog.Question().SetTitle(t.Title).SetMessage(t.Message + "\n\n" + t.Detail).AttachToWindow(win)
+		d.AddButton(t.Later).SetAsCancel()
+		d.AddButton(t.Restart).SetAsDefault().OnClick(func() {
+			if !applyPending() {
+				return
+			}
+			if err := exec.Command(p.File).Start(); err != nil {
+				log.Println("update: relaunch:", err)
+				return
+			}
+			app.Quit()
+		})
+		d.Show()
+	}()
 }
